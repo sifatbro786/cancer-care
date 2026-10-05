@@ -47,22 +47,22 @@ export default function CareJourney({ data, steps }) {
                   />
                   <span
                     aria-hidden="true"
-                    className="absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 font-hand text-xl leading-none text-brand-800"
+                    className="absolute top-4 left-5 font-serif text-5xl leading-none text-white italic drop-shadow-[0_2px_12px_rgb(6_39_36/0.5)]"
                   >
-                    step {step.step}
+                    {step.step}
                   </span>
                 </div>
 
                 <span
                   className={cn(
                     "relative z-10 -mt-7 grid size-14 place-items-center rounded-2xl text-white shadow-lg ring-4 ring-brand-50",
-                    featured ? "bg-coral-600" : "bg-brand-600"
+                    featured ? "bg-brand-900" : "bg-brand-600"
                   )}
                 >
                   <IconByKey name={step.icon} aria-hidden="true" className="size-6" />
                 </span>
 
-                <h3 className={cn("mt-5 max-w-xs text-xl font-semibold", featured && "text-coral-700")}>
+                <h3 className={cn("mt-5 max-w-xs text-xl font-semibold", featured && "text-brand-800")}>
                   <span className="sr-only">Step {step.step}: </span>
                   {step.title}
                 </h3>

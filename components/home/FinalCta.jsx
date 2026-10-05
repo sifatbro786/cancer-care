@@ -1,4 +1,4 @@
-import { HeartHandshake } from "lucide-react";
+import { Eyebrow } from "@/components/ui/SectionHeading";
 import SmartImage from "@/components/ui/SmartImage";
 import Button from "@/components/ui/Button";
 import Reveal from "@/components/motion/Reveal";
@@ -14,11 +14,8 @@ export default function FinalCta({ data }) {
           <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-brand-950/95 via-brand-900/80 to-brand-900/30" />
 
           <div className="max-w-2xl">
-            <p className="inline-flex items-center gap-2 font-hand text-2xl text-brand-200">
-              <HeartHandshake aria-hidden="true" className="size-5" />
-              {eyebrow}
-            </p>
-            <h2 id="final-cta-title" className="mt-3 text-3xl leading-tight font-semibold text-white sm:text-5xl">
+            <Eyebrow invert>{eyebrow}</Eyebrow>
+            <h2 id="final-cta-title" className="mt-5 text-3xl leading-tight font-semibold text-white sm:text-5xl">
               {title}
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-brand-50/90">{description}</p>

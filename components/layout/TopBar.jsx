@@ -7,7 +7,7 @@ export default function TopBar() {
   const chamber = hours[0];
 
   return (
-    <div className="bg-brand-950 text-[0.8rem] whitespace-nowrap text-brand-100">
+    <div className="bg-brand-950 text-[0.8rem] whitespace-nowrap text-brand-100 print:hidden">
       <div className="container-site flex h-10 items-center justify-between gap-6">
         <ul className="flex min-w-0 items-center gap-5">
           <li>
@@ -31,10 +31,7 @@ export default function TopBar() {
 
         <div className="flex items-center gap-4">
           <p className="hidden items-center gap-2 2xl:inline-flex">
-            <span className="relative flex size-2" aria-hidden="true">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-coral-400 opacity-70" />
-              <span className="relative inline-flex size-2 rounded-full bg-coral-400" />
-            </span>
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-sage-500" />
             {emergencyNote}
           </p>
           <ul className="flex items-center gap-1" aria-label="Social media">

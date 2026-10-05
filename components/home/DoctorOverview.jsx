@@ -1,94 +1,79 @@
-import { BadgeCheck, Building2, Quote } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { siteConfig } from "@/data/siteConfig";
-import SectionHeading from "@/components/ui/SectionHeading";
+import { Eyebrow } from "@/components/ui/SectionHeading";
 import SmartImage from "@/components/ui/SmartImage";
 import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
 import Reveal from "@/components/motion/Reveal";
 
+/**
+ * Doctor introduction — editorial layout: a plain portrait with a caption,
+ * a typographic credentials table and one serif pull quote. No badges, no stickers.
+ */
 export default function DoctorOverview({ data, doctor }) {
-  const { eyebrow, title, highlight, sticker, cta } = data;
+  const { eyebrow, cta, labels } = data;
+  const [current, previous] = doctor.affiliations;
+
+  const rows = [
+    { term: labels.role, value: `${doctor.designation}, ${current.name}` },
+    previous ? { term: labels.previously, value: `${previous.role}, ${previous.name}` } : null,
+    { term: labels.qualifications, value: doctor.degrees.join(" · ") },
+    { term: labels.focus, value: doctor.specialties.join(", ") },
+    { term: labels.languages, value: doctor.languages.join(" & ") },
+  ].filter(Boolean);
 
   return (
-    <section aria-labelledby="doctor-title" className="bg-chart py-20 sm:py-28">
-      <div className="container-site grid items-center gap-14 lg:grid-cols-12 lg:gap-20">
-        {/* Portrait */}
-        <Reveal className="relative mx-auto w-full max-w-md lg:col-span-5 lg:max-w-none">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-100 shadow-lift">
+    <section aria-labelledby="doctor-title" className="py-20 sm:py-28">
+      <div className="container-site grid gap-12 lg:grid-cols-12 lg:gap-20">
+        <Reveal as="figure" className="lg:col-span-5">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-mist">
             <SmartImage
               src={doctor.photo.src}
               alt={doctor.photo.alt}
               fill
-              sizes="(min-width: 1024px) 40vw, 90vw"
+              sizes="(min-width: 1024px) 38vw, 100vw"
               className="object-cover object-top"
             />
-            <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/95 p-4 shadow-soft backdrop-blur">
-              <p className="font-display text-lg font-semibold text-ink">{doctor.name}</p>
-              <p className="text-sm text-ink-soft">{doctor.degrees.join(", ")}</p>
-            </div>
           </div>
-          {/* Taped sticker */}
-          <p
-            aria-hidden="true"
-            className="absolute -top-4 -right-2 rotate-[5deg] rounded-md bg-paper px-4 pt-3 pb-2 font-hand text-2xl leading-none text-coral-700 shadow-lg sm:-right-6"
-          >
-            <span className="absolute -top-2 left-1/2 h-4 w-12 -translate-x-1/2 rotate-2 bg-brand-200/80" />
-            {sticker}
-          </p>
+          <figcaption className="mt-4 flex items-baseline justify-between gap-4 border-t border-line pt-4 text-sm text-ink-muted">
+            <span>{doctor.shortTitle}</span>
+            <span>{current.name}</span>
+          </figcaption>
         </Reveal>
 
-        {/* Bio */}
-        <Reveal delay={0.08} className="lg:col-span-7">
-          <SectionHeading id="doctor-title" eyebrow={eyebrow} title={title} highlight={highlight} align="left" />
+        <Reveal delay={0.08} className="flex flex-col lg:col-span-7 lg:pt-6">
+          <Eyebrow>{eyebrow}</Eyebrow>
+          <h2 id="doctor-title" className="mt-5 text-4xl leading-[1.08] font-semibold tracking-[-0.025em] sm:text-5xl">
+            {doctor.name}
+          </h2>
+          <p className="mt-3 font-serif text-xl text-brand-700 italic">{doctor.shortTitle}</p>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">{doctor.summary}</p>
 
-          <p className="mt-6 text-lg leading-relaxed text-ink-soft">{doctor.summary}</p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <Badge tone="solid" icon={BadgeCheck}>
-              {doctor.shortTitle}
-            </Badge>
-            <span className="text-[0.95rem] font-semibold text-ink">{doctor.designation}</span>
-          </div>
-
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {doctor.affiliations.map((a) => (
-              <li key={a.name} className="flex gap-3 rounded-2xl bg-white p-4 ring-1 ring-line">
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
-                  <Building2 aria-hidden="true" className="size-5" />
-                </span>
-                <span>
-                  <span className="block leading-snug font-semibold text-ink">{a.name}</span>
-                  <span className="text-sm text-ink-soft">
-                    {a.period} · {a.role}
-                  </span>
-                </span>
-              </li>
+          <dl className="mt-10 divide-y divide-line border-y border-line">
+            {rows.map((r) => (
+              <div key={r.term} className="grid gap-1 py-4 sm:grid-cols-[11rem_1fr] sm:gap-6">
+                <dt className="text-sm font-semibold tracking-wide text-ink-muted">{r.term}</dt>
+                <dd className="leading-relaxed text-ink">{r.value}</dd>
+              </div>
             ))}
-          </ul>
+          </dl>
 
-          <ul className="mt-6 flex flex-wrap gap-2" aria-label="Specialties">
-            {doctor.specialties.map((s) => (
-              <li key={s}>
-                <Badge tone="neutral" className="px-3.5 py-1.5 text-[0.8rem] font-medium tracking-normal">
-                  {s}
-                </Badge>
-              </li>
-            ))}
-          </ul>
+          <blockquote className="mt-10 max-w-xl border-l-2 border-brand-500 pl-6">
+            <p className="font-serif text-2xl leading-snug text-ink italic">“{doctor.philosophy.quote}”</p>
+            <footer className="mt-3 text-sm text-ink-muted">{doctor.philosophy.signature}</footer>
+          </blockquote>
 
-          <figure className="relative mt-8 rounded-2xl border-l-4 border-coral-400 bg-white p-6 shadow-soft">
-            <Quote aria-hidden="true" className="absolute top-5 right-5 size-8 text-brand-100" />
-            <blockquote className="pr-8 text-lg leading-relaxed text-ink italic">“{doctor.philosophy.quote}”</blockquote>
-            <figcaption className="mt-3 font-hand text-2xl text-brand-700">{doctor.philosophy.signature}</figcaption>
-          </figure>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button href={cta.href} withArrow>
-              {cta.label}
-            </Button>
-            <Button href={siteConfig.cta.primary.href} variant="secondary">
+          <div className="mt-10 flex flex-wrap items-center gap-6">
+            <Button href={siteConfig.cta.primary.href} withArrow>
               {siteConfig.cta.primary.label}
             </Button>
+            <Link
+              href={cta.href}
+              className="group inline-flex items-center gap-2 font-display font-semibold text-brand-700 underline-offset-4 hover:underline"
+            >
+              {cta.label}
+              <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
           </div>
         </Reveal>
       </div>

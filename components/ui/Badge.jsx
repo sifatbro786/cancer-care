@@ -2,7 +2,6 @@ import { cn } from "@/lib/utils";
 
 const tones = {
   brand: "bg-brand-50 text-brand-800 ring-brand-200/70",
-  coral: "bg-coral-50 text-coral-700 ring-coral-200/70",
   sage: "bg-sage-50 text-sage-700 ring-sage-100",
   neutral: "bg-paper-deep text-ink-soft ring-line",
   solid: "bg-brand-600 text-white ring-transparent",

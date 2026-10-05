@@ -9,7 +9,8 @@
   /* Typography (CSS variables are injected by next/font in layout.jsx) */
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-heading), var(--font-body), ui-sans-serif, sans-serif;
-  --font-hand: var(--font-handwritten), cursive;
+  /* Editorial serif — used sparingly (accent words, pull quotes, numerals) */
+  --font-serif: var(--font-accent), Georgia, "Times New Roman", serif;
 
   /* Brand — soft clinical teal. 600 is the primary (6.1:1 on white). */
   --color-brand-50: #eef7f5;
@@ -24,14 +25,10 @@
   --color-brand-900: #0b3f3b;
   --color-brand-950: #062724;
 
-  /* Coral — warm accent for urgency / emergency only. 600 = 4.75:1 on white. */
-  --color-coral-50: #fcf1ec;
-  --color-coral-100: #f8dfd4;
-  --color-coral-200: #f0bda8;
-  --color-coral-400: #e0795f;
-  --color-coral-500: #cf6648;
-  --color-coral-600: #b9553b;
-  --color-coral-700: #96432e;
+  /* Alert — reserved for form errors & urgent states. 4.9:1 on white. */
+  --color-alert-50: #fbefef;
+  --color-alert-600: #a53b3b;
+  --color-alert-700: #8a2f2f;
 
   /* Sage — muted emerald for success / wellness cues */
   --color-sage-50: #f1f6f2;
@@ -45,6 +42,7 @@
   --color-ink-muted: #5c6b6d;
   --color-paper: #faf8f4;
   --color-paper-deep: #f2eee6;
+  --color-mist: #e9f1f0;
   --color-line: #e6e1d7;
 
   --radius-card: 1.25rem;
@@ -113,14 +111,6 @@
   background-position: 0 0, 7px 9px;
 }
 
-/* Faint hairline grid used behind section headings, echoing medical chart paper */
-@utility bg-chart {
-  background-image:
-    linear-gradient(to right, rgb(14 110 102 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(14 110 102 / 0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
 @utility container-site {
   width: 100%;
   max-width: var(--container-site);
@@ -151,6 +141,11 @@
 .hero-rise > *:nth-child(2) { animation-delay: 0.06s; }
 .hero-rise > *:nth-child(3) { animation-delay: 0.12s; }
 .hero-rise > *:nth-child(4) { animation-delay: 0.18s; }
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
 
 /* Respect users who prefer less motion (Framer Motion also reads this) */
 @media (prefers-reduced-motion: reduce) {

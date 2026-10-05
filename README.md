@@ -7,7 +7,7 @@ Node.js **24**. The backend is built **inside this Next.js app** (Route Handlers
 
 ```bash
 npm install
-cp .env.example .env.local   # fill SMTP values before Phase 4
+cp .env.example .env.local   # fill SMTP values (without them, dev logs emails instead of sending)
 npm run dev
 ```
 
@@ -22,7 +22,7 @@ app/
     page.jsx            Home
 components/
   layout/               TopBar, Navbar (desktop dropdown), MobileNav (a11y drawer), Footer
-  ui/                   Button, Badge, Card, Container, SectionHeading, SmartImage, HandUnderline
+  ui/                   Button, Badge, Card, Container, SectionHeading (+Eyebrow), AccentText, SmartImage
   brand/ icons/ seo/ providers/
 data/                   Mock content — the ONLY place copy & content lives
 lib/                    utils (cn, formatBDT, readingTime…), seo builders, icon map
@@ -42,15 +42,11 @@ services/content.js     Data-access layer (server-only). Pages call these async 
 | Token | Use | Contrast |
 |---|---|---|
 | `brand-600` #0E6E66 | primary actions, highlights | 6.1:1 on white |
-| `coral-600` #B9553B | urgency / emergency only | 4.75:1 on white |
+| `alert-600` #A53B3B | warnings & form errors only | 4.9:1 on white |
 | `ink` / `ink-soft` | text | 13.8 / 6.8:1 on paper |
 | `paper` #FAF8F4 | page background | — |
 
-Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-vision readers), Caveat (handwritten accents).
+Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-vision readers), Newsreader (serif italic accent).
 
 ## Phases
-1. Foundation & architecture ✅
-2. Homepage
-3. Content pages (About, Services, Patient Guide, Blog)
-4. Appointment, Contact, Shop + prescription upload, Nodemailer
-5. SEO, a11y, performance, Vercel deploy
+See **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** — the single source of truth for what is done and what is next.

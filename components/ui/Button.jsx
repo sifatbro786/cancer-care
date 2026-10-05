@@ -11,7 +11,7 @@ const base =
 const variants = {
   primary: "bg-brand-600 text-white shadow-[0_6px_18px_-8px_rgb(14_110_102/0.6)] hover:bg-brand-700",
   secondary: "bg-white text-ink ring-1 ring-line hover:ring-brand-300 hover:text-brand-700",
-  coral: "bg-coral-600 text-white hover:bg-coral-700",
+  dark: "bg-brand-950 text-white hover:bg-brand-900",
   light: "bg-white text-brand-800 hover:bg-brand-50",
   ghost: "text-brand-700 hover:bg-brand-50",
   outlineLight: "text-white ring-1 ring-white/50 hover:bg-white/10",
@@ -27,7 +27,7 @@ const sizes = {
 const arrowChip = {
   primary: "bg-white/15",
   secondary: "bg-brand-50 text-brand-700",
-  coral: "bg-white/15",
+  dark: "bg-white/15",
   light: "bg-brand-600 text-white",
   ghost: "bg-brand-100",
   outlineLight: "bg-white/15",

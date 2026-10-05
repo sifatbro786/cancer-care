@@ -1,10 +1,10 @@
-import { HeartPulse } from "lucide-react";
+import { Eyebrow } from "@/components/ui/SectionHeading";
 import SmartImage from "@/components/ui/SmartImage";
 import Reveal from "@/components/motion/Reveal";
 
 /** Editorial statement + quiet stats (no count-up gimmicks) + photo. */
 export default function IntroStatement({ data, stats }) {
-  const { eyebrow, statement, highlight, handNote, image } = data;
+  const { eyebrow, statement, highlight, image } = data;
   const [before, after = ""] = statement.split(highlight);
 
   return (
@@ -12,16 +12,13 @@ export default function IntroStatement({ data, stats }) {
       <div className="container-site">
         <div className="bg-grain grid gap-12 rounded-[2rem] bg-white px-6 py-12 ring-1 ring-line sm:px-12 lg:grid-cols-12 lg:gap-16 lg:px-16 lg:py-16">
           <Reveal className="lg:col-span-7">
-            <p className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] text-brand-700 uppercase">
-              <HeartPulse aria-hidden="true" className="size-4" />
-              {eyebrow}
-            </p>
+            <Eyebrow>{eyebrow}</Eyebrow>
             <h2
               id="intro-title"
               className="mt-5 text-2xl leading-[1.35] font-medium text-ink sm:text-[2rem] sm:leading-[1.3]"
             >
               {before}
-              <span className="text-brand-600">{highlight}</span>
+              <em className="font-serif font-normal text-brand-700 italic">{highlight}</em>
               {after}
             </h2>
 
@@ -36,9 +33,6 @@ export default function IntroStatement({ data, stats }) {
                 </div>
               ))}
             </dl>
-            <p aria-hidden="true" className="mt-5 -rotate-1 font-hand text-xl text-coral-600">
-              ↑ {handNote}
-            </p>
           </Reveal>
 
           <Reveal delay={0.1} className="relative lg:col-span-5">

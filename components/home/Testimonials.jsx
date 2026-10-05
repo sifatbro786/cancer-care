@@ -13,7 +13,7 @@ function Stars({ value }) {
         <Star
           key={i}
           aria-hidden="true"
-          className={cn("size-4", i < Math.round(value) ? "fill-coral-400 text-coral-400" : "text-line")}
+          className={cn("size-4", i < Math.round(value) ? "fill-brand-500 text-brand-500" : "text-line")}
         />
       ))}
     </span>

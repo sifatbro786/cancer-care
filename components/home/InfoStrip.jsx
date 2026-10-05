@@ -37,17 +37,13 @@ export default function InfoStrip({ data }) {
               ))}
             </ul>
             <p className="mt-auto pt-5 text-sm text-ink-soft">
-              {hours.footnote} <strong className="font-bold text-coral-600">{hours.footnoteStrong}</strong>
+              {hours.footnote} <strong className="font-bold text-brand-700">{hours.footnoteStrong}</strong>
             </p>
           </Card>
         </Reveal>
 
         <Reveal as="li" delay={0.06} className="h-full">
           <Card tone="brand" className="flex h-full flex-col overflow-hidden p-6">
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute -top-10 -right-10 size-40 rounded-full border-[18px] border-white/5"
-            />
             <IconChip name="heart" tone="dark" />
             <h2 className="mt-5 text-lg leading-snug font-semibold text-white">{call.title}</h2>
             <a

@@ -10,7 +10,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden bg-brand-950 text-brand-100">
+    <footer className="relative overflow-hidden bg-brand-950 text-brand-100 print:hidden">
       <div aria-hidden="true" className="bg-grain pointer-events-none absolute inset-0 opacity-40 invert" />
 
       <div className="container-site relative grid gap-12 py-16 lg:grid-cols-12 lg:py-20">
@@ -18,9 +18,6 @@ export default function Footer() {
         <div className="lg:col-span-3">
           <Logo invert />
           <p className="mt-6 max-w-sm leading-relaxed text-brand-100/85">{footer.about}</p>
-          <p className="mt-6 font-hand text-2xl text-brand-200" aria-hidden="true">
-            with care, from Dhaka ♡
-          </p>
           <ul className="mt-6 flex gap-2" aria-label="Social media">
             {social.map((s) => {
               const Icon = brandIconMap[s.key];

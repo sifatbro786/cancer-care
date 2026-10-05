@@ -19,7 +19,7 @@ export default function NotFound() {
     <>
       <TopBar />
       <Navbar />
-      <main id="main" tabIndex={-1} className="bg-chart flex-1 outline-none">
+      <main id="main" tabIndex={-1} className="flex-1 outline-none">
         <div className="container-site flex flex-col items-center gap-8 py-24 text-center sm:py-32">
           <p aria-hidden="true" className="font-display text-[7rem] leading-none font-bold text-brand-100 sm:text-[10rem]">
             404
@@ -31,9 +31,6 @@ export default function NotFound() {
             highlight={notFoundData.highlight}
             description={notFoundData.description}
           />
-          <p aria-hidden="true" className="-mt-2 -rotate-2 font-hand text-2xl text-coral-600">
-            {notFoundData.note}
-          </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Button href={home.href} withArrow>
               {home.label}

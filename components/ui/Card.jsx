@@ -4,7 +4,7 @@ const tones = {
   white: "bg-white ring-1 ring-line/80 shadow-soft",
   paper: "bg-paper-deep ring-1 ring-line",
   brand: "bg-brand-700 text-white ring-1 ring-brand-800",
-  coral: "bg-coral-600 text-white",
+  ink: "bg-brand-950 text-white",
   outline: "bg-transparent ring-1 ring-line",
 };
 

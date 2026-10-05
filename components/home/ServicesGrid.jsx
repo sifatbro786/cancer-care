@@ -70,7 +70,7 @@ export default function ServicesGrid({ data, services }) {
                           key={h}
                           className="flex items-start gap-2 text-ink-soft transition-colors group-hover:text-brand-50 group-focus-within:text-brand-50"
                         >
-                          <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand-500 group-hover:text-coral-200 group-focus-within:text-coral-200" />
+                          <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand-500 group-hover:text-brand-200 group-focus-within:text-brand-200" />
                           {h}
                         </li>
                       ))}

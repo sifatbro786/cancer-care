@@ -133,7 +133,7 @@ export default function Navbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b transition-[background-color,box-shadow,border-color] duration-300",
+        "sticky top-0 z-40 border-b print:hidden transition-[background-color,box-shadow,border-color] duration-300",
         scrolled
           ? "border-line/80 bg-white/90 shadow-[0_6px_24px_-16px_rgb(28_43_44/0.35)] backdrop-blur-md"
           : "border-transparent bg-paper"
@@ -162,7 +162,7 @@ export default function Navbar() {
                     {active ? (
                       <span
                         aria-hidden="true"
-                        className="absolute inset-x-3 bottom-1.5 h-0.5 rounded-full bg-coral-400"
+                        className="absolute inset-x-3 bottom-1.5 h-0.5 rounded-full bg-brand-500"
                       />
                     ) : null}
                   </Link>

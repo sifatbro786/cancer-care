@@ -8,6 +8,7 @@ import {
   getFaqs,
   getServices,
   getTestimonials,
+  withSlots,
 } from "@/services/content";
 import JsonLd from "@/components/seo/JsonLd";
 import HeroSection from "@/components/home/HeroSection";
@@ -26,7 +27,7 @@ export const metadata = buildMetadata("home");
 
 export default async function HomePage() {
   // Independent reads run in parallel — same pattern once these hit the database.
-  const [doctor, services, journey, testimonials, posts, categories, faqs] = await Promise.all([
+  const [doctor, services, journey, testimonials, posts, categories, faqs, home] = await Promise.all([
     getDoctor(),
     getServices(),
     getCareJourney(),
@@ -34,21 +35,22 @@ export default async function HomePage() {
     getBlogs({ featuredOnly: true, limit: 3 }),
     getBlogCategories(),
     getFaqs(),
+    withSlots(homeData), // admin-uploaded images replace Unsplash defaults
   ]);
 
   return (
     <>
-      <HeroSection data={homeData.hero} />
-      <InfoStrip data={homeData.infoStrip} />
-      <IntroStatement data={homeData.intro} stats={doctor.stats} />
-      <DoctorOverview data={homeData.doctor} doctor={doctor} />
-      <ServicesGrid data={homeData.services} services={services} />
-      <CareJourney data={homeData.journey} steps={journey} />
-      <Testimonials data={homeData.testimonials} testimonials={testimonials} />
-      <EmergencyContactBanner data={homeData.emergency} />
-      <HealthBlogSection data={homeData.blog} posts={posts} categories={categories} />
-      <FaqSection data={homeData.faq} faqs={faqs} />
-      <FinalCta data={homeData.finalCta} />
+      <HeroSection data={home.hero} />
+      <InfoStrip data={home.infoStrip} />
+      <IntroStatement data={home.intro} stats={doctor.stats} />
+      <DoctorOverview data={home.doctor} doctor={doctor} />
+      <ServicesGrid data={home.services} services={services} />
+      <CareJourney data={home.journey} steps={journey} />
+      <Testimonials data={home.testimonials} testimonials={testimonials} />
+      <EmergencyContactBanner data={home.emergency} />
+      <HealthBlogSection data={home.blog} posts={posts} categories={categories} />
+      <FaqSection data={home.faq} faqs={faqs} />
+      <FinalCta data={home.finalCta} />
       <JsonLd data={faqJsonLd(faqs)} />
     </>
   );

@@ -2,7 +2,7 @@ import { aboutData } from "@/data/aboutData";
 import { formatNumber } from "@/lib/utils";
 import { siteConfig } from "@/data/siteConfig";
 import { buildMetadata } from "@/lib/seo";
-import { getDoctor } from "@/services/content";
+import { getDoctor, withSlots } from "@/services/content";
 import PageHeader from "@/components/layout/PageHeader";
 import SectionHeading from "@/components/ui/SectionHeading";
 import SmartImage from "@/components/ui/SmartImage";
@@ -12,8 +12,8 @@ import CtaBand from "@/components/sections/CtaBand";
 export const metadata = buildMetadata("about");
 
 export default async function AboutPage() {
-  const doctor = await getDoctor();
-  const { header, bio, timeline, affiliations, memberships, focus, gallery, cta } = aboutData;
+  const [doctor, about] = await Promise.all([getDoctor(), withSlots(aboutData)]);
+  const { header, bio, timeline, affiliations, memberships, focus, gallery, cta } = about;
   const home = siteConfig.nav[0];
 
   return (

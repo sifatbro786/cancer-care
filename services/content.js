@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { isDbConfigured } from "@/lib/db/connect";
 import { CONTENT_TTL, TAGS } from "@/lib/cache/tags";
 import { readingTime } from "@/lib/utils";
+import { applySlots } from "@/lib/media/slots";
 import { mockSource } from "@/services/sources/mock";
 import { dbSource } from "@/services/sources/db";
 
@@ -51,19 +52,32 @@ const q = {
   faqs: cached("getFaqs", [TAGS.faqs]),
   siteSettings: cached("getSiteSettings", [TAGS.site]),
   pageSeo: cached("getPageSeo", [TAGS.seo]),
+  imageSlots: cached("getImageSlots", [TAGS.media]),
 };
 
+/**
+ * Image slots (B3): { [key]: { src, alt, custom } }. Pages pass their copy objects
+ * through `withSlots()` so admin-uploaded images replace the Unsplash defaults.
+ */
+export async function getImageSlots() {
+  return q.imageSlots();
+}
+
+export async function withSlots(data) {
+  return applySlots(data, await q.imageSlots());
+}
+
 export async function getDoctor() {
-  return q.doctor();
+  return withSlots(await q.doctor());
 }
 
 export async function getServices() {
-  return q.services();
+  return withSlots(await q.services());
 }
 
 export async function getServiceBySlug(slug) {
   if (typeof slug !== "string" || !slug) return null;
-  return q.serviceBySlug(slug);
+  return withSlots(await q.serviceBySlug(slug));
 }
 
 export async function getCareJourney() {

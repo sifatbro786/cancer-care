@@ -13,6 +13,7 @@ import {
   Truck,
   Video,
   HandHeart,
+  Image as ImageIcon,
   LayoutDashboard,
   Ribbon,
   UserRound,
@@ -41,6 +42,7 @@ const iconMap = {
   ribbon: Ribbon,
   // admin
   layout: LayoutDashboard,
+  image: ImageIcon,
   user: UserRound,
 };
 

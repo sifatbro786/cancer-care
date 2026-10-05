@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-05 · Current phase: **B1–B2 done → B3 Media & uploads next** (see 7-step plan below)_
+_Last updated: 2026-10-06 · Current phase: **B1–B3 done → B4 Admin shell & inbox next** (see 7-step plan below)_
 
 ---
 
@@ -16,7 +16,7 @@ _Last updated: 2026-10-05 · Current phase: **B1–B2 done → B3 Media & upload
 | 3 | Content pages: About, Services, Patient Guide, Blog list + `[slug]` | ✅ Done |
 | 4 | Interactive pages + email: Appointment, Contact, Shop + `[slug]` + Prescription upload, Nodemailer | ✅ Done |
 | 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ✅ Done |
-| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅) |
+| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅ B3 ✅) |
 
 ### Phase 4 — what was built
 - Pages: `/appointment` (type → day/slot → details, `?type=online` / `?service=` prefill), `/contact` (channels, form, map, hours), `/shop` (search, category filter, `?upload=1` opens upload), `/shop/[slug]` (SSG, Product JSON-LD)
@@ -50,13 +50,13 @@ Everything stays inside this Next.js app (Route Handlers + Server Actions + Mong
 |---|---|---|
 | B1 | **DB foundation** — Mongoose connection singleton; models: User, SiteSettings, Doctor, Service, ProductCategory, Product, BlogPost, Testimonial, FAQ, PageSEO, Appointment, Order, Message, Media; `npm run seed` imports `data/*.js`; `services/content.js` bodies → DB queries (signatures unchanged); cache tags + `revalidateTag`; form APIs save to DB first, then email | ✅ |
 | B2 | **Auth & RBAC** — `/admin/login`, bcryptjs hashes, JWT (`jose`) in httpOnly secure cookie; roles `super_admin` / `admin`; `proxy.js` guard **plus** role check inside every Server Action / API; login rate limit + temporary lockout; logout, change password; script to create the first super admin | ✅ |
-| B3 | **Media & uploads** — public images → `/uploads` (sharp resize → webp), unlink old file on replace/delete; prescriptions stored **private** (outside public, served only to logged-in admins); media library; Unsplash placeholders replaced by uploaded images | ⬜ |
+| B3 | **Media & uploads** — public images → `/uploads` (sharp resize → webp), unlink old file on replace/delete; prescriptions stored **private** (outside public, served only to logged-in admins); media library; Unsplash placeholders replaced by uploaded images | ✅ |
 | B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ⬜ |
 | B5 | **Content CMS** — CRUD for doctor profile, site settings (phone, hours, socials, map), services, products & categories, blog (block editor, draft/publish), testimonials (approve), FAQ (ordering); zod on every form; save → revalidate affected public pages | ⬜ |
 | B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ⬜ |
 | B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ⬜ |
 
-New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ (sharp already ships with Next).
+New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.35 ✅ (now a direct dependency).
 
 ### B1 — what was built
 - **Mode switch by env:** `MONGODB_URI` set → MongoDB; unset → `data/*.js` (static demo / CI). Same shapes, same API contract.
@@ -94,6 +94,24 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ (sharp alread
 - Logout clears this browser's cookie; a stolen token stays valid until it expires (≤12 h) unless the password is changed or the user is disabled. Acceptable for 2–3 staff; a session table can come later if needed.
 - Rate limits are in memory (single PM2 process = exact). Use Redis if you scale to several instances.
 - No audit log yet (B6) — sign-ins/lockouts/password changes are written to the server log (`[auth] …`).
+
+### B3 — what was built
+- **Owner rule:** until an admin uploads/assigns a photo, every place on the site keeps its current **Unsplash** image. Implemented as **image slots** = keys of `data/media.js` (defaults); `SiteSettings.imageOverrides` holds admin choices. `lib/media/slots.js#applySlots()` swaps any `{src}` that equals a slot default — so `homeData` / `aboutData` / `patientGuideData` / `doctor.photo` / `service.image` work unchanged. Pages call `withSlots(data)`; `getDoctor/getServices` apply it internally. Cache tag `media`.
+- **Upload pipeline** (`lib/server/media.js`): magic bytes (JPEG/PNG/WebP/AVIF; SVG/GIF refused) → sharp: EXIF auto-rotate, **all metadata stripped** (GPS), long edge ≤ 2400 px, `limitInputPixels` 50 MP, WebP q80. Re-encoding neutralises polyglot files. UUID names, `wx` writes.
+- **Storage/serving:** `MEDIA_DIR` (default `./storage/media`) → `GET /media/YYYY/MM/<uuid>.webp` (strict segment regex, `immutable` 1-year cache). Not `/public` (`next start` only serves build-time public files). Nginx alias documented.
+- **Upload endpoint** `POST /api/admin/media` — Route Handler (keeps the 10 MB body limit off Server Actions/login), `withAdmin(content:write)`, explicit same-origin check (cookie-auth POST), 60 uploads/10 min/user, DB failure → file removed.
+- **Admin → Media** (`/admin/media`, nav entry only for roles with `content:write`): 14 slot cards (Stock photo / Your upload, Replace via library picker, "Use stock photo" reset) + uploader (multi-file, drag & drop, per-file status) + library (alt text edit, copy link, delete, pagination 36/page).
+- **Server Actions** (`_actions/media.js`): each authorizes itself, zod-validated, DB errors → friendly message; slot changes `updateTag` (admin sees the change on the next load) + `refresh()`.
+- **Delete rules:** refused while a doctor/service/product/blog post uses the file; slots using it are reset to the Unsplash default; record deleted before file unlink.
+- **Alt text** edits propagate to slot snapshots (public pages update).
+- **Prescriptions:** `GET /api/admin/prescriptions/:orderId` — `inbox:read`, sha256 verified (tamper → 404), `private, no-store`, `nosniff`, sandbox CSP for images, `?download=1` → attachment, access logged. The B4 orders inbox will link to it.
+- Seed no longer puts stock photos into the media library (it removes the 14 B1 records once); the library holds uploads only.
+- Slot/override writes use read-modify-write on the small array (no `$pull`-by-condition / `arrayFilters`) — identical on MongoDB and Mongo-compatible engines.
+- Verified: eslint 0 · build · **27/27** media E2E (Unsplash before upload, 401/403 guards, spoofed + SVG refused, WebP/2400/no-EXIF, traversal 404s, hero + portrait replaced on home/about while others stay Unsplash, alt propagation, reset, delete resets slot + unlinks, delete refused when a product uses it, prescription 401/200/attachment/tamper 404/not public) · B2 auth suite still **17/17** · 1440 + 390 screenshots.
+
+### B3 notes
+- The slot picker shows the newest 36 uploads (library page 1). Enough for a clinic; add search when the library grows.
+- Products and blog posts keep their own image field — choosing a library image for them comes with the B5 editors.
 
 **Decided by the owner:**
 - ODM: **Mongoose**
@@ -138,4 +156,5 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **Phase 4:** eyebrow rule removed site-wide; Appointment / Contact / Shop / Product pages; 3 Route Handlers with Nodemailer; shared zod validation; tested end-to-end against a local SMTP sink (valid, invalid, cross-origin, honeypot, spoofed file, rate limit).
 - **Phase 5:** SEO files, OG image, icon/manifest, loading/error boundaries, click-to-load map, hydration + font-warning fixes, axe 0 violations, Lighthouse ~88–92 mobile perf, deploy guide.
 - **B1:** Mongoose + 15 models, seed script, content service → DB with cache tags, forms save-then-email, private prescription storage, dynamic slugs.
-- **B2:** JWT auth + DB revocation, RBAC, proxy guard, login lockout, admin login/overview/account, create-admin CLI, hard 404 for slugs. Next: **B3 Media & uploads**.
+- **B2:** JWT auth + DB revocation, RBAC, proxy guard, login lockout, admin login/overview/account, create-admin CLI, hard 404 for slugs.
+- **B3:** image slots (Unsplash stays until replaced), sharp upload pipeline, /media serving, Admin → Media, private prescription download. Next: **B4 Admin shell & inbox**.

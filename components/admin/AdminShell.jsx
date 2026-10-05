@@ -4,6 +4,7 @@ import { authData } from "@/data/admin/authData";
 import { logoutAction } from "@/app/(admin)/_actions/auth";
 import { LogoMark } from "@/components/brand/Logo";
 import AdminNavLink from "@/components/admin/AdminNavLink";
+import { can } from "@/lib/auth/rbac";
 
 /**
  * Admin chrome. Desktop: quiet sidebar on paper-deep. Mobile: compact header + scrollable tab row
@@ -47,7 +48,7 @@ export default function AdminShell({ user, children }) {
 
         <nav aria-label={S.navLabel} className="overflow-x-auto px-3 pb-3 lg:flex-1 lg:pb-0">
           <ul className="flex gap-1 lg:flex-col">
-            {S.nav.map((item) => (
+            {S.nav.filter((item) => !item.permission || can(user.role, item.permission)).map((item) => (
               <li key={item.href}>
                 <AdminNavLink href={item.href} icon={item.icon}>
                   {item.label}

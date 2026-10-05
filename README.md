@@ -31,6 +31,17 @@ npm run create-admin -- --email doctor@clinic.com --reset-password              
 Sign in at `/admin/login`. Sessions last 12 h; changing a password signs out every other device.
 Every Server Action / admin Route Handler must call `authorize(PERMISSION)` / `withAdmin(PERMISSION, …)` from `lib/auth/session.js` — the proxy and layouts are not enough on their own.
 
+### Media (B3)
+- **Admin → Media**: upload photos (JPG/PNG/WebP/AVIF ≤10 MB → re-encoded to WebP, ≤2400 px, metadata stripped) and assign them to **site image slots** (the keys of `data/media.js`).
+- A slot with no upload keeps showing its **Unsplash default** — nothing changes on the site until an admin replaces it. "Use stock photo" switches back.
+- Files live in `MEDIA_DIR` (default `./storage/media`), served by `app/media/[...path]/route.js` with a 1-year immutable cache. Not `public/`: `next start` only serves files that existed there at build time.
+- Prescriptions: `GET /api/admin/prescriptions/:orderId` (`?download=1` to save) — signed-in staff only, checksum-verified, `no-store`.
+- **Nginx (VPS)** can serve media directly instead of Node:
+  ```nginx
+  location /media/ { alias /var/lib/cancer-care/media/; expires 1y; add_header Cache-Control "public, immutable"; }
+  ```
+- Back up `storage/` (or `MEDIA_DIR` + `PRIVATE_STORAGE_DIR`) together with MongoDB.
+
 ## Architecture
 
 ```
@@ -57,6 +68,8 @@ services/submissions.js Write side for the public forms (save → email)
 services/auth.js        Login / password checks (lockout, rate limits)
 lib/auth/               config (cookie, TTL) · jwt (jose) · rbac (roles → permissions) · session (DB-verified) · password (bcrypt)
 proxy.js                /admin guard (optimistic), /api/admin 401, real 404 for unknown shop/blog slugs
+lib/media/slots.js      Site image slots: Unsplash defaults + admin overrides (applySlots)
+lib/server/media.js     Upload pipeline (magic bytes → sharp → WebP) + MEDIA_DIR storage
 app/(admin)/            /admin/login + (panel)/ (layout = requireUser) · _actions/ = Server Actions
 scripts/seed.mjs        npm run seed (register-alias.mjs resolves "@/" for plain Node)
 scripts/create-admin.mjs npm run create-admin

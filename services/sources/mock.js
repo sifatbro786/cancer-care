@@ -6,6 +6,7 @@ import { testimonialsData, ratingSummary } from "@/data/testimonialsData";
 import { faqData } from "@/data/faqData";
 import { siteConfig } from "@/data/siteConfig";
 import { seoData } from "@/data/seoData";
+import { slotDefaults } from "@/lib/media/slots";
 
 /**
  * Static source — `data/*.js`. Used when MONGODB_URI is not set
@@ -38,4 +39,6 @@ export const mockSource = {
 
   getSiteSettings: async () => siteConfig,
   getPageSeo: async (key) => seoData[key] ?? null,
+
+  getImageSlots: async () => slotDefaults(), // no DB → every slot shows its Unsplash default
 };

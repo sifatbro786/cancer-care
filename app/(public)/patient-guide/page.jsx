@@ -1,5 +1,6 @@
 import { CircleCheck, Phone, TriangleAlert } from "lucide-react";
 import { patientGuideData } from "@/data/patientGuideData";
+import { withSlots } from "@/services/content";
 import { siteConfig } from "@/data/siteConfig";
 import { buildMetadata } from "@/lib/seo";
 import PageHeader from "@/components/layout/PageHeader";
@@ -108,8 +109,8 @@ function Tips({ tips, image }) {
   );
 }
 
-export default function PatientGuidePage() {
-  const { header, tocLabel, disclaimer, urgent, sections, cta } = patientGuideData;
+export default async function PatientGuidePage() {
+  const { header, tocLabel, disclaimer, urgent, sections, cta } = await withSlots(patientGuideData);
   const toc = [urgent, ...sections];
 
   return (

@@ -14,6 +14,7 @@ import {
   Testimonial,
 } from "@/lib/db/models";
 import { shopData } from "@/data/shopData";
+import { SLOT_KEYS, slotDefaults } from "@/lib/media/slots";
 
 /**
  * MongoDB source. Every function returns the SAME shape as ./mock.js,
@@ -146,6 +147,17 @@ export const dbSource = {
     await db();
     const s = await SiteSettings.findOne({ key: "site" }).select(PUBLIC_FIELDS).lean();
     return s ? clean(toPlain(s)) : null;
+  },
+
+  /** Slot map: Unsplash defaults, overlaid with admin-chosen uploads. */
+  async getImageSlots() {
+    await db();
+    const s = await SiteSettings.findOne({ key: "site" }).select("imageOverrides").lean();
+    const slots = slotDefaults();
+    for (const o of s?.imageOverrides ?? []) {
+      if (SLOT_KEYS.includes(o.key)) slots[o.key] = { src: o.src, alt: o.alt ?? "", custom: true };
+    }
+    return slots;
   },
 
   /** Wired into lib/seo.js in B6. */

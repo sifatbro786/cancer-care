@@ -40,6 +40,7 @@ export const authData = {
     brandSub: "Admin",
     nav: [
       { label: "Overview", href: "/admin", icon: "layout" },
+      { label: "Media", href: "/admin/media", icon: "image", permission: "content:write" },
       { label: "Account", href: "/admin/account", icon: "user" },
     ],
     viewSite: "View website",

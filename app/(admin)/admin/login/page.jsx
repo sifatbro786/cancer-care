@@ -2,9 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { authData } from "@/data/admin/authData";
-import { media } from "@/data/media";
 import { safeAdminPath } from "@/lib/auth/config";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getImageSlots } from "@/services/content";
 import Logo from "@/components/brand/Logo";
 import AccentText from "@/components/ui/AccentText";
 import { Eyebrow } from "@/components/ui/SectionHeading";
@@ -20,8 +20,9 @@ export default async function LoginPage({ searchParams }) {
 
   // Already signed in (verified against the DB, not just the cookie) → straight in.
   // A DB hiccup must not block the login page itself, so failures fall through to the form.
-  const user = await getCurrentUser().catch(() => null);
+  const [user, slots] = await Promise.all([getCurrentUser().catch(() => null), getImageSlots().catch(() => null)]);
   if (user) redirect(next);
+  const panelImage = slots?.careHands ?? null;
 
   const notice = sp.reason === "expired" ? authData.errors.sessionExpired : null;
 
@@ -56,8 +57,10 @@ export default async function LoginPage({ searchParams }) {
       </div>
 
       <div aria-hidden="true" className="relative hidden p-4 lg:block">
-        <div className="relative h-full overflow-hidden rounded-[1.75rem]">
-          <SmartImage src={media.careHands.src} alt="" fill sizes="50vw" priority className="object-cover" />
+        <div className="relative h-full overflow-hidden rounded-[1.75rem] bg-brand-50">
+          {panelImage ? (
+            <SmartImage src={panelImage.src} alt="" fill sizes="50vw" preload className="object-cover" />
+          ) : null}
         </div>
       </div>
     </main>

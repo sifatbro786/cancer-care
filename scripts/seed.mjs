@@ -4,7 +4,9 @@
  * npm run seed -- --fresh       → wipe CONTENT collections, then insert (refuses in production without --yes)
  *
  * Always ensures indexes on every collection.
- * Never touches: users, appointments, orders, messages.
+ * Never touches: users, appointments, orders, messages, uploaded media.
+ * Site images are NOT seeded: data/media.js stays the default for every slot until an
+ * admin assigns an upload (B3).
  */
 import mongoose from "mongoose";
 import { connectDB, disconnectDB } from "@/lib/db/connect";
@@ -12,7 +14,6 @@ import { fromDhakaDay } from "@/lib/db/serialize";
 import * as models from "@/lib/db/models";
 import { siteConfig } from "@/data/siteConfig";
 import { seoData } from "@/data/seoData";
-import { media } from "@/data/media";
 import { doctorData } from "@/data/doctorData";
 import { servicesData, careJourney } from "@/data/servicesData";
 import { productsData, productCategories } from "@/data/productsData";
@@ -74,11 +75,6 @@ const plan = [
     "key",
     Object.entries(seoData).map(([key, v]) => ({ key, ...v })),
   ],
-  [
-    models.Media,
-    "key",
-    Object.entries(media).map(([key, m]) => ({ key, url: m.src, alt: m.alt, source: "remote" })),
-  ],
 ];
 
 async function seedCollection(Model, keyField, docs) {
@@ -115,6 +111,11 @@ async function main() {
         (MODE === "overwrite" ? ` · ${r.updated} updated` : "")
     );
   }
+
+  // B1 seeded stock photos into the media library; since B3 the library holds uploads only.
+  const legacy = await models.Media.collection.deleteMany({ source: "remote" });
+  if (legacy.deletedCount) console.log(`\n  Removed ${legacy.deletedCount} legacy stock-photo media records (now defaults in data/media.js)`);
+  await models.Media.collection.dropIndex("key_1").catch(() => {}); // B1 index, field no longer exists
 
   console.log("\nEnsuring indexes…");
   for (const Model of Object.values(models)) {

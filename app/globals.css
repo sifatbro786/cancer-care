@@ -134,6 +134,24 @@
   }
 }
 
+/* Hero entrance — CSS only, so LCP text is painted immediately (no hydration wait) */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.hero-rise > * {
+  animation: hero-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes hero-slide {
+  from { transform: translateY(14px); }
+  to { transform: none; }
+}
+/* The <h1> is the LCP element: slide only, never start invisible */
+.hero-rise > h1 { animation-name: hero-slide; }
+.hero-rise > *:nth-child(2) { animation-delay: 0.06s; }
+.hero-rise > *:nth-child(3) { animation-delay: 0.12s; }
+.hero-rise > *:nth-child(4) { animation-delay: 0.18s; }
+
 /* Respect users who prefer less motion (Framer Motion also reads this) */
 @media (prefers-reduced-motion: reduce) {
   *,

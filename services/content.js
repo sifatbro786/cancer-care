@@ -12,9 +12,11 @@ import { readingTime } from "@/lib/utils";
  * Data-access layer.
  * ─────────────────────────────────────────────────────────────────
  * Pages & server components call ONLY these async functions.
- * Phase 1: they resolve mock data from `data/`.
- * Phase 2: swap each body for `apiFetch("/doctor")` etc. — the
- *          signatures and return shapes stay identical, so no UI changes.
+ * Now:     they resolve mock data from `data/`.
+ * Backend: the whole backend lives inside this Next.js app (Node 24) —
+ *          no separate Express server, no HTTP round-trip. Each body is
+ *          swapped for a direct DB query (e.g. `await Doctor.findOne().lean()`);
+ *          signatures & return shapes stay identical, so no UI changes.
  * ─────────────────────────────────────────────────────────────────
  */
 

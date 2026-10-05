@@ -15,6 +15,7 @@ export default function SectionHeading({
   align = "center",
   as: Heading = "h2",
   invert = false,
+  id,
   className,
 }) {
   let titleNode = title;
@@ -25,7 +26,7 @@ export default function SectionHeading({
     titleNode = (
       <>
         {before}
-        <span className="whitespace-nowrap">
+        <span className={cn(highlight.length <= 16 && "whitespace-nowrap")}>
           <span className={cn("relative inline-block", invert ? "text-brand-200" : "text-brand-600")}>
             {highlight}
             <HandUnderline />
@@ -57,6 +58,7 @@ export default function SectionHeading({
         </p>
       ) : null}
       <Heading
+        id={id}
         className={cn(
           "text-3xl leading-[1.15] font-semibold sm:text-4xl lg:text-[2.75rem]",
           invert && "text-white"

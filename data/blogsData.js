@@ -26,7 +26,7 @@ export const blogsData = [
     author: "Dr. Farhana Rahman",
     publishedAt: "2026-09-18",
     featured: true,
-    cover: { src: img("1586773860418-d37222d8fce3"), alt: "Day care chemotherapy chairs by a window" },
+    cover: { src: img("1710698936989-500f359c6482"), alt: "A calm treatment room with a bed and a chair" },
     content: [
       { type: "paragraph", text: "The night before your first session, it is normal to feel anxious. Knowing what to expect makes the day much easier — for you and for the person coming with you." },
       { type: "heading", text: "The day before" },
@@ -63,7 +63,7 @@ export const blogsData = [
     author: "Dr. Farhana Rahman",
     publishedAt: "2026-08-21",
     featured: true,
-    cover: { src: img("1579154204601-01588f351e67"), alt: "Pink ribbon for breast cancer awareness" },
+    cover: { src: img("1555777223-2b7c13eaeaae"), alt: "Pink ribbon for breast cancer awareness" },
     content: [
       { type: "paragraph", text: "Most breast changes are not cancer — but every new change deserves a check-up." },
       { type: "list", items: ["A new lump in the breast or armpit", "Change in size or shape of the breast", "Skin dimpling, redness or an orange-peel texture", "Nipple discharge or a newly inverted nipple"] },
@@ -79,7 +79,7 @@ export const blogsData = [
     author: "Care Team",
     publishedAt: "2026-08-05",
     featured: false,
-    cover: { src: img("1559839734-2b71ea197ec2"), alt: "A caregiver holding a patient's hand" },
+    cover: { src: img("1586324304780-c9a5031a3599"), alt: "A caregiver holding a patient's hand" },
     content: [
       { type: "paragraph", text: "Caregivers carry a quiet, heavy load. Looking after yourself is part of looking after them." },
       { type: "list", items: ["Keep one folder with all reports, in date order", "Note side effects daily — it helps the doctor adjust treatment", "Accept help with cooking, travel and errands"] },

@@ -1,6 +1,7 @@
 # Cancer Care & Medical Services — Web Platform
 
 Next.js 16 (App Router, **JavaScript only**) · Tailwind CSS v4 · Framer Motion · Lucide · Nodemailer
+Node.js **24**. The backend is built **inside this Next.js app** (Route Handlers + Server Actions) — no separate Express server.
 
 ## Getting started
 
@@ -26,7 +27,7 @@ components/
 data/                   Mock content — the ONLY place copy & content lives
 lib/                    utils (cn, formatBDT, readingTime…), seo builders, icon map
 services/content.js     Data-access layer (server-only). Pages call these async functions.
-                        Phase 2 swaps their bodies for API calls — UI stays untouched.
+                        Backend phase swaps their bodies for direct DB queries — UI stays untouched.
 ```
 
 ### Rules

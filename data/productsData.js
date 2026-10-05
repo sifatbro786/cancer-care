@@ -78,7 +78,7 @@ export const productsData = [
     requiresPrescription: true,
     inStock: true,
     coldChain: true,
-    image: { src: img("1583912267550-d6c2ac3196c0"), alt: "Pre-filled injection syringe" },
+    image: { src: img("1576671081837-49000212a370"), alt: "Glass medical vials for injection" },
     description:
       "Supports white blood cell recovery after chemotherapy. Cold-chain item — delivered in an insulated pack.",
   },
@@ -95,7 +95,7 @@ export const productsData = [
     requiresPrescription: true,
     inStock: true,
     coldChain: false,
-    image: { src: img("1550572017-edd951b55104"), alt: "Blister pack of tablets" },
+    image: { src: img("1631549916768-4119b2e5f926"), alt: "A pile of tablets on a table" },
     description: "Helps prevent nausea and vomiting associated with chemotherapy.",
   },
   {
@@ -127,7 +127,7 @@ export const productsData = [
     requiresPrescription: false,
     inStock: true,
     coldChain: false,
-    image: { src: img("1622484211148-c8b4d4c6f8b0"), alt: "Nutrition powder tin with scoop" },
+    image: { src: img("1562243061-204550d8a2c9"), alt: "Prescription bottle with capsules" },
     description: "Calorie- and protein-dense supplement for patients with reduced appetite.",
   },
   {
@@ -143,7 +143,7 @@ export const productsData = [
     requiresPrescription: false,
     inStock: true,
     coldChain: false,
-    image: { src: img("1584017911766-d451b3d0e843"), alt: "Capsules in a blister strip" },
+    image: { src: img("1512069772995-ec65ed45afd6"), alt: "Assorted medication pills" },
     description: "Reduces stomach acid; often prescribed alongside steroid pre-medication.",
   },
   {
@@ -159,7 +159,7 @@ export const productsData = [
     requiresPrescription: false,
     inStock: true,
     coldChain: false,
-    image: { src: img("1626716493137-b67fe9501e76"), alt: "Round white tablets" },
+    image: { src: img("1573883430697-4c3479aae6b9"), alt: "Round white tablets" },
     description: "For mild pain and fever. Contact your doctor before use if you have fever during chemotherapy.",
   },
   {
@@ -175,7 +175,7 @@ export const productsData = [
     requiresPrescription: false,
     inStock: false,
     coldChain: false,
-    image: { src: img("1576602976047-174e57a47881"), alt: "Medicine sachets" },
+    image: { src: img("1577401132921-cb39bb0adcff"), alt: "Blister packs of tablets" },
     description: "Replaces fluids and salts lost through diarrhoea or vomiting.",
   },
 ];

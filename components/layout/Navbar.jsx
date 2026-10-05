@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown, Menu, Phone } from "lucide-react";
 import { siteConfig } from "@/data/siteConfig";
-import { getIcon } from "@/lib/icons";
+import { IconByKey } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/brand/Logo";
 import Button from "@/components/ui/Button";
@@ -85,7 +85,6 @@ function Dropdown({ item, active }) {
           >
             <ul className="rounded-2xl bg-white p-2 shadow-lift ring-1 ring-line">
               {item.children.map((child) => {
-                const Icon = getIcon(child.icon);
                 return (
                   <li key={child.href}>
                     <Link
@@ -94,7 +93,7 @@ function Dropdown({ item, active }) {
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.95rem] text-ink hover:bg-brand-50"
                     >
                       <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100">
-                        <Icon aria-hidden="true" className="size-4" />
+                        <IconByKey name={child.icon} aria-hidden="true" className="size-4" />
                       </span>
                       {child.label}
                     </Link>

@@ -42,3 +42,9 @@ const iconMap = {
 export function getIcon(key) {
   return iconMap[key] ?? HeartPulse;
 }
+
+/** Render an icon by key — preferred inside components (lint-safe, stable identity). */
+export function IconByKey({ name, ...props }) {
+  const Component = Object.hasOwn(iconMap, name) ? iconMap[name] : HeartPulse;
+  return <Component {...props} />;
+}

@@ -1,38 +1,55 @@
-import { siteConfig } from "@/data/siteConfig";
-import { seoData } from "@/data/seoData";
-import { buildMetadata } from "@/lib/seo";
-import SectionHeading from "@/components/ui/SectionHeading";
-import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
+import { homeData } from "@/data/homeData";
+import { buildMetadata, faqJsonLd } from "@/lib/seo";
+import {
+  getBlogCategories,
+  getBlogs,
+  getCareJourney,
+  getDoctor,
+  getFaqs,
+  getServices,
+  getTestimonials,
+} from "@/services/content";
+import JsonLd from "@/components/seo/JsonLd";
+import HeroSection from "@/components/home/HeroSection";
+import InfoStrip from "@/components/home/InfoStrip";
+import IntroStatement from "@/components/home/IntroStatement";
+import DoctorOverview from "@/components/home/DoctorOverview";
+import ServicesGrid from "@/components/home/ServicesGrid";
+import CareJourney from "@/components/home/CareJourney";
+import Testimonials from "@/components/home/Testimonials";
+import EmergencyContactBanner from "@/components/home/EmergencyContactBanner";
+import HealthBlogSection from "@/components/home/HealthBlogSection";
+import FaqSection from "@/components/home/FaqSection";
+import FinalCta from "@/components/home/FinalCta";
 
 export const metadata = buildMetadata("home");
 
-/**
- * Phase 1 placeholder — verifies the design system & layout shell.
- * Replaced by the full homepage (Hero, Doctor, Services, Journey,
- * Testimonials, Emergency banner, Blog, FAQ) in Phase 2.
- */
-export default function HomePage() {
+export default async function HomePage() {
+  // Independent reads run in parallel — same pattern once these hit the database.
+  const [doctor, services, journey, testimonials, posts, categories, faqs] = await Promise.all([
+    getDoctor(),
+    getServices(),
+    getCareJourney(),
+    getTestimonials(),
+    getBlogs({ featuredOnly: true, limit: 3 }),
+    getBlogCategories(),
+    getFaqs(),
+  ]);
+
   return (
-    <section className="bg-chart relative py-24 sm:py-32">
-      <div className="container-site flex flex-col items-center gap-8">
-        <Badge tone="coral">Phase 1 · Foundation preview</Badge>
-        <SectionHeading
-          as="h1"
-          eyebrow={siteConfig.name}
-          title={siteConfig.tagline}
-          highlight="cancer care"
-          description={seoData.default.description}
-        />
-        <div className="flex flex-wrap justify-center gap-3">
-          <Button href={siteConfig.cta.primary.href} size="lg" withArrow>
-            {siteConfig.cta.primary.label}
-          </Button>
-          <Button href={siteConfig.cta.secondary.href} size="lg" variant="secondary">
-            {siteConfig.cta.secondary.label}
-          </Button>
-        </div>
-      </div>
-    </section>
+    <>
+      <HeroSection data={homeData.hero} />
+      <InfoStrip data={homeData.infoStrip} />
+      <IntroStatement data={homeData.intro} stats={doctor.stats} />
+      <DoctorOverview data={homeData.doctor} doctor={doctor} />
+      <ServicesGrid data={homeData.services} services={services} />
+      <CareJourney data={homeData.journey} steps={journey} />
+      <Testimonials data={homeData.testimonials} testimonials={testimonials} />
+      <EmergencyContactBanner data={homeData.emergency} />
+      <HealthBlogSection data={homeData.blog} posts={posts} categories={categories} />
+      <FaqSection data={homeData.faq} faqs={faqs} />
+      <FinalCta data={homeData.finalCta} />
+      <JsonLd data={faqJsonLd(faqs)} />
+    </>
   );
 }

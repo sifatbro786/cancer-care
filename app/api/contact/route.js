@@ -43,7 +43,8 @@ export async function POST(request) {
   const subjectLabel =
     contactData.form.fields.subject.options.find((o) => o.value === c.subject)?.label ?? c.subject;
 
-  const sent = await sendMail({ ...contactEmail({ ...c, subjectLabel }), replyTo: c.email });
+  const adminPath = record ? `/admin/messages/${record.id}` : null;
+  const sent = await sendMail({ ...contactEmail({ ...c, subjectLabel, adminPath }), replyTo: c.email });
   await markNotified(record, sent);
   if (!sent && !record) return reply.failed();
 

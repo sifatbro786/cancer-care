@@ -42,6 +42,10 @@ Every Server Action / admin Route Handler must call `authorize(PERMISSION)` / `w
   ```
 - Back up `storage/` (or `MEDIA_DIR` + `PRIVATE_STORAGE_DIR`) together with MongoDB.
 
+### Inbox (B4)
+`/admin/appointments`, `/admin/orders`, `/admin/messages` — tabs, search (reference / name / mobile), notes, history.
+Allowed status changes live in `lib/inbox/workflow.js` (server-enforced). A prescription order can't be processed until the prescription is verified; rejecting it cancels the order. Clinic emails include an "Open in admin" link.
+
 ## Architecture
 
 ```
@@ -69,6 +73,8 @@ services/auth.js        Login / password checks (lockout, rate limits)
 lib/auth/               config (cookie, TTL) · jwt (jose) · rbac (roles → permissions) · session (DB-verified) · password (bcrypt)
 proxy.js                /admin guard (optimistic), /api/admin 401, real 404 for unknown shop/blog slugs
 lib/media/slots.js      Site image slots: Unsplash defaults + admin overrides (applySlots)
+lib/inbox/workflow.js   Allowed status transitions (appointments, orders, prescriptions, messages)
+services/admin/inbox.js Inbox DAL — lists, details, conditional status updates, notes
 lib/server/media.js     Upload pipeline (magic bytes → sharp → WebP) + MEDIA_DIR storage
 app/(admin)/            /admin/login + (panel)/ (layout = requireUser) · _actions/ = Server Actions
 scripts/seed.mjs        npm run seed (register-alias.mjs resolves "@/" for plain Node)

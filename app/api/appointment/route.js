@@ -61,6 +61,7 @@ export async function POST(request) {
     serviceLabel: service?.title,
     dateLabel: formatIsoDay(a.date),
     slotLabel: formatSlot(a.slot),
+    adminPath: record ? `/admin/appointments/${record.id}` : null,
   });
 
   const sent = await sendMail({ ...mail.clinic, replyTo: a.email });

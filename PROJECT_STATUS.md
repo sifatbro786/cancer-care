@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-06 · Current phase: **B1–B3 done → B4 Admin shell & inbox next** (see 7-step plan below)_
+_Last updated: 2026-10-06 · Current phase: **B1–B4 done → B5 Content CMS next** (see 7-step plan below)_
 
 ---
 
@@ -16,7 +16,7 @@ _Last updated: 2026-10-06 · Current phase: **B1–B3 done → B4 Admin shell & 
 | 3 | Content pages: About, Services, Patient Guide, Blog list + `[slug]` | ✅ Done |
 | 4 | Interactive pages + email: Appointment, Contact, Shop + `[slug]` + Prescription upload, Nodemailer | ✅ Done |
 | 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ✅ Done |
-| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅ B3 ✅) |
+| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅ B3 ✅ B4 ✅) |
 
 ### Phase 4 — what was built
 - Pages: `/appointment` (type → day/slot → details, `?type=online` / `?service=` prefill), `/contact` (channels, form, map, hours), `/shop` (search, category filter, `?upload=1` opens upload), `/shop/[slug]` (SSG, Product JSON-LD)
@@ -51,7 +51,7 @@ Everything stays inside this Next.js app (Route Handlers + Server Actions + Mong
 | B1 | **DB foundation** — Mongoose connection singleton; models: User, SiteSettings, Doctor, Service, ProductCategory, Product, BlogPost, Testimonial, FAQ, PageSEO, Appointment, Order, Message, Media; `npm run seed` imports `data/*.js`; `services/content.js` bodies → DB queries (signatures unchanged); cache tags + `revalidateTag`; form APIs save to DB first, then email | ✅ |
 | B2 | **Auth & RBAC** — `/admin/login`, bcryptjs hashes, JWT (`jose`) in httpOnly secure cookie; roles `super_admin` / `admin`; `proxy.js` guard **plus** role check inside every Server Action / API; login rate limit + temporary lockout; logout, change password; script to create the first super admin | ✅ |
 | B3 | **Media & uploads** — public images → `/uploads` (sharp resize → webp), unlink old file on replace/delete; prescriptions stored **private** (outside public, served only to logged-in admins); media library; Unsplash placeholders replaced by uploaded images | ✅ |
-| B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ⬜ |
+| B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ✅ |
 | B5 | **Content CMS** — CRUD for doctor profile, site settings (phone, hours, socials, map), services, products & categories, blog (block editor, draft/publish), testimonials (approve), FAQ (ordering); zod on every form; save → revalidate affected public pages | ⬜ |
 | B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ⬜ |
 | B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ⬜ |
@@ -113,6 +113,25 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.
 - The slot picker shows the newest 36 uploads (library page 1). Enough for a clinic; add search when the library grows.
 - Products and blog posts keep their own image field — choosing a library image for them comes with the B5 editors.
 
+### B4 — what was built
+- **Workflows** (`lib/inbox/workflow.js`, enforced server-side, mirrored in the UI):
+  Appointment `new → confirmed → completed`, `new|confirmed → cancelled`, `cancelled → new` (reopen).
+  Order `new → processing → dispatched → delivered`, any open state → `cancelled`.
+  **Rx gate:** an order whose prescription is required can't leave `new` until verified. Prescription `pending → verified | rejected`; rejecting a required one auto-cancels the order (reason kept + noted).
+  Message `unread ⇄ read → archived`; opening a message marks it read (client Server Action — render never mutates).
+- **Concurrency:** every status change is `updateOne({ _id, status: <what the admin saw> })` → a stale tab gets "someone else just updated this" + refresh, never a silent overwrite. Verified with two tabs.
+- **Audit trail:** `statusHistory` (added to Appointment) + append-only notes, each with user + time; names resolved in one query.
+- **Lists** (`/admin/appointments|orders|messages`): server-side tabs with counts, search (reference prefix, name, phone — digits-only so "+880 1712-345678" works; regex-escaped), 20/page, plain links/GET forms (no JS needed, every view is a URL). New/Confirmed appointments sort by requested time; Rx queue oldest first.
+- **Details:** tap-to-call, WhatsApp (pre-filled greeting), mailto; facts; notes; history; order items with DB price snapshot + subtotal; prescription panel (open/download via the private B3 route, verify / reject with reason).
+- **Shell:** sidebar badges (new appointments, Rx to verify, unread messages); mobile header + native `<dialog>` menu; overview cards link to their queues + **Today** schedule; `(panel)/not-found.jsx` keeps 404s inside the admin.
+- **Emails:** clinic notifications carry an **Open in admin** button (record id only, no PII); patient emails never do.
+- **Mongoose gotcha (documented in code):** `trusted()` must wrap the operator VALUE (`{ status: trusted({ $in }) }`), not the whole filter — sanitizeFilter checks per field.
+- Verified: eslint 0 · build · **25/25** inbox E2E (seeded through the public forms; email deep links; badges; today list; phone/ref search; regex escaping; confirm + stale-tab conflict; notes; cancel → reopen; Rx gate; verify → processing → dispatched → delivered; reject → auto-cancel; OTC; auto-read; archive; bad id; logged-out redirect; mobile menu) · B2 17/17 · B3 27/27 still green.
+
+### B4 notes
+- Status changes don't message the patient — the clinic calls (owner decision). SMS/WhatsApp notifications could be added later.
+- Messages have no notes field (replies happen by phone/email); easy to add if the clinic wants it.
+
 **Decided by the owner:**
 - ODM: **Mongoose**
 - **Appointments: no per-slot limit** — any number of requests per slot; the clinic calls each patient to confirm the final time (B4 builds the inbox around this: status New → Confirmed by phone).
@@ -157,4 +176,5 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **Phase 5:** SEO files, OG image, icon/manifest, loading/error boundaries, click-to-load map, hydration + font-warning fixes, axe 0 violations, Lighthouse ~88–92 mobile perf, deploy guide.
 - **B1:** Mongoose + 15 models, seed script, content service → DB with cache tags, forms save-then-email, private prescription storage, dynamic slugs.
 - **B2:** JWT auth + DB revocation, RBAC, proxy guard, login lockout, admin login/overview/account, create-admin CLI, hard 404 for slugs.
-- **B3:** image slots (Unsplash stays until replaced), sharp upload pipeline, /media serving, Admin → Media, private prescription download. Next: **B4 Admin shell & inbox**.
+- **B3:** image slots (Unsplash stays until replaced), sharp upload pipeline, /media serving, Admin → Media, private prescription download.
+- **B4:** appointments / orders / messages inbox with enforced workflows, Rx gate, optimistic concurrency, notes + history, search & pagination, badges, mobile menu, email deep links. Next: **B5 Content CMS**.

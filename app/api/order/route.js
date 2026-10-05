@@ -96,6 +96,7 @@ export async function POST(request) {
       rx,
       productLabel: product?.name ?? shopData.modal.generalProduct,
       fileName: attachment?.filename,
+      adminPath: record ? `/admin/orders/${record.id}` : null,
     }),
     attachments: attachment ? [attachment] : undefined,
   });

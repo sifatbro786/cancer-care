@@ -15,6 +15,7 @@ import {
   HandHeart,
   Image as ImageIcon,
   LayoutDashboard,
+  Mail,
   Ribbon,
   UserRound,
 } from "lucide-react";
@@ -43,6 +44,7 @@ const iconMap = {
   // admin
   layout: LayoutDashboard,
   image: ImageIcon,
+  mail: Mail,
   user: UserRound,
 };
 

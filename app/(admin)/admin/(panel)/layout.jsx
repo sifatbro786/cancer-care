@@ -1,4 +1,7 @@
+import { isDbConfigured } from "@/lib/db/connect";
+import { can, PERMISSIONS } from "@/lib/auth/rbac";
 import { requireUser } from "@/lib/auth/session";
+import { getInboxBadges } from "@/services/admin/inbox";
 import AdminShell from "@/components/admin/AdminShell";
 
 /**
@@ -9,5 +12,12 @@ import AdminShell from "@/components/admin/AdminShell";
  */
 export default async function PanelLayout({ children }) {
   const user = await requireUser();
-  return <AdminShell user={user}>{children}</AdminShell>;
+  // Badges are a convenience: a DB hiccup must not take the whole admin down.
+  const badges =
+    isDbConfigured() && can(user.role, PERMISSIONS.inboxRead) ? await getInboxBadges().catch(() => null) : null;
+  return (
+    <AdminShell user={user} badges={badges}>
+      {children}
+    </AdminShell>
+  );
 }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="g" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0v28" fill="none" stroke="#0e6e66" stroke-opacity=".07"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="600" fill="#eef7f5"/>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <g transform="translate(340 220) scale(3)" fill="none" stroke="#4ba699" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 8.5c-3.3 0-5.8 2.6-5.8 6 0 2.7 1.5 5.4 3.6 8.4l-6.9 11.2M20 8.5c3.3 0 5.8 2.6 5.8 6 0 2.7-1.5 5.4-3.6 8.4l6.9 11.2M17.8 22.9 20 26l2.2-3.1"/>
+  </g>
+</svg>

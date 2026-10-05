@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Cancer Care & Medical Services — Web Platform
 
-## Getting Started
+Next.js 16 (App Router, **JavaScript only**) · Tailwind CSS v4 · Framer Motion · Lucide · Nodemailer
 
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # fill SMTP values before Phase 4
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Architecture
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```
+app/
+  layout.jsx            Root: fonts, global metadata, clinic + physician JSON-LD, MotionProvider
+  not-found.jsx         404 (mounts the site shell itself)
+  globals.css           Design tokens (@theme) + base styles
+  (public)/             Public site route group — own layout (TopBar, Navbar, Footer)
+    page.jsx            Home
+components/
+  layout/               TopBar, Navbar (desktop dropdown), MobileNav (a11y drawer), Footer
+  ui/                   Button, Badge, Card, Container, SectionHeading, SmartImage, HandUnderline
+  brand/ icons/ seo/ providers/
+data/                   Mock content — the ONLY place copy & content lives
+lib/                    utils (cn, formatBDT, readingTime…), seo builders, icon map
+services/content.js     Data-access layer (server-only). Pages call these async functions.
+                        Phase 2 swaps their bodies for API calls — UI stays untouched.
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Rules
+- No TypeScript. Imports use the `@/` alias.
+- No hardcoded copy in components — import from `data/` (or via `services/`).
+- Data stores **icon keys** (`"syringe"`) not components → JSON-serialisable for the future API.
+- Money is integer BDT; format with `formatBDT()`.
+- All images go through `<SmartImage>` (auto-fallback to `/images/fallback-care.svg`).
+- Animations use `m.*` from `framer-motion` (LazyMotion, strict) — never `motion.*`.
 
-## Learn More
+### Design tokens (see `app/globals.css`)
+| Token | Use | Contrast |
+|---|---|---|
+| `brand-600` #0E6E66 | primary actions, highlights | 6.1:1 on white |
+| `coral-600` #B9553B | urgency / emergency only | 4.75:1 on white |
+| `ink` / `ink-soft` | text | 13.8 / 6.8:1 on paper |
+| `paper` #FAF8F4 | page background | — |
 
-To learn more about Next.js, take a look at the following resources:
+Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-vision readers), Caveat (handwritten accents).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Phases
+1. Foundation & architecture ✅
+2. Homepage
+3. Content pages (About, Services, Patient Guide, Blog)
+4. Appointment, Contact, Shop + prescription upload, Nodemailer
+5. SEO, a11y, performance, Vercel deploy

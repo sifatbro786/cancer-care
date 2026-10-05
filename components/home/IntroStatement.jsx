@@ -1,4 +1,5 @@
 import { Eyebrow } from "@/components/ui/SectionHeading";
+import { formatNumber } from "@/lib/utils";
 import SmartImage from "@/components/ui/SmartImage";
 import Reveal from "@/components/motion/Reveal";
 
@@ -27,7 +28,7 @@ export default function IntroStatement({ data, stats }) {
                 <div key={s.label} className="flex flex-col">
                   <dt className="order-2 mt-2 text-sm leading-snug text-ink-soft">{s.label}</dt>
                   <dd className="order-1 font-display text-3xl font-semibold tracking-tight text-ink sm:text-[2.6rem]">
-                    {s.value.toLocaleString("en-US")}
+                    {formatNumber(s.value)}
                     <span className="text-brand-500">{s.suffix}</span>
                   </dd>
                 </div>

@@ -1,4 +1,5 @@
 import { aboutData } from "@/data/aboutData";
+import { formatNumber } from "@/lib/utils";
 import { siteConfig } from "@/data/siteConfig";
 import { buildMetadata } from "@/lib/seo";
 import { getDoctor } from "@/services/content";
@@ -30,7 +31,7 @@ export default async function AboutPage() {
             <div key={s.label} className="flex flex-col">
               <dt className="order-2 mt-1 text-sm leading-snug text-ink-muted">{s.label}</dt>
               <dd className="order-1 font-display text-3xl font-semibold tracking-tight">
-                {s.value.toLocaleString("en-US")}
+                {formatNumber(s.value)}
                 {s.suffix}
               </dd>
             </div>

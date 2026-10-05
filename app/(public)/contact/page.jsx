@@ -4,6 +4,7 @@ import { siteConfig, whatsappHref } from "@/data/siteConfig";
 import { buildMetadata } from "@/lib/seo";
 import PageHeader from "@/components/layout/PageHeader";
 import ContactForm from "@/components/contact/ContactForm";
+import MapEmbed from "@/components/contact/MapEmbed";
 import { WhatsappIcon } from "@/components/icons/BrandIcons";
 
 export const metadata = buildMetadata("contact");
@@ -60,15 +61,7 @@ export default function ContactPage() {
           </div>
 
           <div className="flex flex-col gap-4 lg:col-span-5">
-            <div className="relative min-h-72 flex-1 overflow-hidden rounded-[1.5rem] bg-mist ring-1 ring-line">
-              <iframe
-                title={mapTitle}
-                src={address.mapEmbed}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="absolute inset-0 size-full border-0"
-              />
-            </div>
+            <MapEmbed src={address.mapEmbed} title={mapTitle} label={contactData.mapLoad} note={contactData.mapNote} />
             <div className="rounded-[1.5rem] bg-white p-6 ring-1 ring-line">
               <p className="flex items-start gap-3">
                 <MapPin aria-hidden="true" className="mt-1 size-5 shrink-0 text-brand-600" />

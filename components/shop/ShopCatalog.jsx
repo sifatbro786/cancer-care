@@ -97,6 +97,7 @@ export default function ShopCatalog({ products, categories }) {
         </Button>
       </div>
 
+      <h2 className="sr-only">{S.listHeading}</h2>
       <p aria-live="polite" className="mt-10 text-sm text-ink-muted">
         {S.resultsLabel(visible.length)}
       </p>

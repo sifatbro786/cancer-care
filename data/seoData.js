@@ -8,6 +8,7 @@ export const seoData = {
     titleTemplate: "%s | Cancer Care & Medical Services",
     description:
       "Specialised cancer care in Dhaka: day care chemotherapy, in-person oncology chamber in Kafrul (Dhaka Cantonment), online telemedicine and genuine oncology medicine delivery.",
+    ogHeadline: "Day care chemotherapy, chamber & online oncology consultation",
     keywords: [
       "cancer care Dhaka",
       "oncologist Dhaka Cantonment",

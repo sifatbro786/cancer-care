@@ -70,19 +70,22 @@ export default async function ServicesPage() {
             <section key={s.id} id={s.slug} aria-labelledby={`${s.slug}-title`} className="scroll-mt-28 py-20 sm:py-24">
               <div className="container-site grid gap-12 lg:grid-cols-12 lg:gap-16">
                 <Reveal className={cn("lg:col-span-5", flip && "lg:order-2")}>
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-mist lg:sticky lg:top-28 lg:aspect-[4/5]">
-                    <SmartImage
-                      src={s.image.src}
-                      alt={s.image.alt}
-                      fill
-                      sizes="(min-width: 1024px) 38vw, 100vw"
-                      className="object-cover"
-                    />
+                  {/* Sticky on the wrapper; the image's own parent stays `relative` (required by next/image fill) */}
+                  <div className="lg:sticky lg:top-28">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-mist lg:aspect-[4/5]">
+                      <SmartImage
+                        src={s.image.src}
+                        alt={s.image.alt}
+                        fill
+                        sizes="(min-width: 1024px) 38vw, 100vw"
+                        className="object-cover"
+                      />
+                    </div>
                   </div>
                 </Reveal>
 
                 <div className={cn("lg:col-span-7", flip && "lg:order-1")}>
-                  <p aria-hidden="true" className="font-serif text-5xl text-brand-300 italic">
+                  <p aria-hidden="true" className="font-serif text-5xl text-brand-500 italic">
                     {String(i + 1).padStart(2, "0")}
                   </p>
                   <h2 id={`${s.slug}-title`} className="mt-3 text-3xl leading-tight font-semibold sm:text-4xl">

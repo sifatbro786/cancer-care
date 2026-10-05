@@ -2,7 +2,7 @@ import SmartImage from "@/components/ui/SmartImage";
 import Button from "@/components/ui/Button";
 import AccentText from "@/components/ui/AccentText";
 
-const AVATAR_TONES = ["bg-brand-700", "bg-sage-500", "bg-brand-500", "bg-brand-900"];
+const AVATAR_TONES = ["bg-brand-700", "bg-sage-700", "bg-brand-600", "bg-brand-900"];
 
 /**
  * Hero — rounded photo card, copy anchored lower-left on a soft teal scrim.

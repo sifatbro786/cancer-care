@@ -11,6 +11,7 @@ import { formatIsoDay, formatSlot, getBookableDays, getSlots, monthShort, weekda
 import { applyFieldErrors, submitForm } from "@/lib/client/submitForm";
 import { IconByKey } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 import { Field, FormAlert, Honeypot, Input, Select, Textarea } from "@/components/ui/Field";
 import Button from "@/components/ui/Button";
 
@@ -27,7 +28,7 @@ function Tile({ name, value, register, checked, disabled, className, children })
         "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500",
         checked && "bg-brand-50 ring-2 ring-brand-600",
         disabled && "cursor-not-allowed opacity-45",
-        className
+        className,
       )}
     >
       <input type="radio" value={value} disabled={disabled} className="sr-only" {...register(name)} />
@@ -38,13 +39,17 @@ function Tile({ name, value, register, checked, disabled, className, children })
 
 export default function AppointmentForm({ services }) {
   const params = useSearchParams();
+  // The page is prerendered at build time, so "today" on the server ≠ "today" in the browser.
+  // Day/slot pickers render only after hydration → no mismatch.
+  const hydrated = useHydrated();
   const [now] = useState(() => Date.now());
   const [result, setResult] = useState(null);
   const [formError, setFormError] = useState("");
 
   const initialType = params.get("type") === "online" ? "online" : "chamber";
   const initialService = services.some((s) => s.slug === params.get("service")) ? params.get("service") : "";
-  const firstOpenDay = (t) => getBookableDays(t, now).find((d) => !d.closed && getSlots(t, d.iso, now).length)?.iso ?? "";
+  const firstOpenDay = (t) =>
+    getBookableDays(t, now).find((d) => !d.closed && getSlots(t, d.iso, now).length)?.iso ?? "";
 
   const {
     register,
@@ -150,7 +155,7 @@ export default function AppointmentForm({ services }) {
                 <span
                   className={cn(
                     "grid size-11 shrink-0 place-items-center rounded-xl",
-                    type === t.key ? "bg-brand-600 text-white" : "bg-mist text-brand-700"
+                    type === t.key ? "bg-brand-600 text-white" : "bg-mist text-brand-700",
                   )}
                 >
                   <IconByKey name={t.icon} aria-hidden="true" className="size-5" />
@@ -184,56 +189,93 @@ export default function AppointmentForm({ services }) {
       <fieldset className="min-w-0 space-y-5">
         <StepTitle>{D.steps.when}</StepTitle>
 
-        <div role="radiogroup" aria-label={D.dateLabel} className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2">
-          {days.map((d) => (
-            <Tile
-              key={d.iso}
-              name="date"
-              value={d.iso}
-              register={() => dateField}
-              checked={date === d.iso}
-              disabled={d.closed}
-              className="w-[4.6rem] shrink-0 snap-start text-center"
+        {hydrated ? (
+          <>
+            <div
+              role="radiogroup"
+              aria-label={D.dateLabel}
+              className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2"
             >
-              <span className="block px-2 py-3">
-                <span className="block text-xs font-semibold tracking-wide text-ink-muted uppercase">
-                  {d.isToday ? D.todayLabel : weekdayShort(d.weekday)}
-                </span>
-                <span className="mt-1 block font-display text-2xl leading-none font-semibold">{d.day}</span>
-                <span className="mt-1 block text-xs text-ink-muted">{d.closed ? D.closedLabel : monthShort(d.month)}</span>
-              </span>
-            </Tile>
-          ))}
-        </div>
-        {errors.date ? (
-          <p role="alert" className="text-sm font-medium text-alert-700">
-            {errors.date.message}
-          </p>
-        ) : null}
-
-        <div>
-          <p className="mb-3 flex items-center gap-2 text-[0.95rem] font-semibold">
-            <CalendarCheck aria-hidden="true" className="size-4 text-brand-600" />
-            {D.slotLabel}
-            {date ? <span className="font-normal text-ink-muted">· {formatIsoDay(date)}</span> : null}
-          </p>
-          {slots.length ? (
-            <div role="radiogroup" aria-label={D.slotLabel} className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-              {slots.map((s) => (
-                <Tile key={s} name="slot" value={s} register={register} checked={slot === s} className="text-center">
-                  <span className="block px-2 py-3 font-medium">{formatSlot(s)}</span>
+              {days.map((d) => (
+                <Tile
+                  key={d.iso}
+                  name="date"
+                  value={d.iso}
+                  register={() => dateField}
+                  checked={date === d.iso}
+                  disabled={d.closed}
+                  className="w-[4.6rem] shrink-0 snap-start text-center"
+                >
+                  <span className="block px-2 py-3">
+                    <span className="block text-xs font-semibold tracking-wide text-ink-muted uppercase">
+                      {d.isToday ? D.todayLabel : weekdayShort(d.weekday)}
+                    </span>
+                    <span className="mt-1 block font-display text-2xl leading-none font-semibold">{d.day}</span>
+                    <span className="mt-1 block text-xs text-ink-muted">
+                      {d.closed ? D.closedLabel : monthShort(d.month)}
+                    </span>
+                  </span>
                 </Tile>
               ))}
             </div>
-          ) : (
-            <p className="rounded-xl bg-white p-4 text-ink-soft ring-1 ring-line">{D.noSlotsLabel}</p>
-          )}
-          {errors.slot ? (
-            <p role="alert" className="mt-2 text-sm font-medium text-alert-700">
-              {errors.slot.message}
-            </p>
-          ) : null}
-        </div>
+            {errors.date ? (
+              <p role="alert" className="text-sm font-medium text-alert-700">
+                {errors.date.message}
+              </p>
+            ) : null}
+
+            <div>
+              <p className="mb-3 flex items-center gap-2 text-[0.95rem] font-semibold">
+                <CalendarCheck aria-hidden="true" className="size-4 text-brand-600" />
+                {D.slotLabel}
+                {date ? <span className="font-normal text-ink-muted">· {formatIsoDay(date)}</span> : null}
+              </p>
+              {slots.length ? (
+                <div
+                  role="radiogroup"
+                  aria-label={D.slotLabel}
+                  className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6"
+                >
+                  {slots.map((s) => (
+                    <Tile
+                      key={s}
+                      name="slot"
+                      value={s}
+                      register={register}
+                      checked={slot === s}
+                      className="text-center"
+                    >
+                      <span className="block px-2 py-3 font-medium">{formatSlot(s)}</span>
+                    </Tile>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-xl bg-white p-4 text-ink-soft ring-1 ring-line">{D.noSlotsLabel}</p>
+              )}
+              {errors.slot ? (
+                <p role="alert" className="mt-2 text-sm font-medium text-alert-700">
+                  {errors.slot.message}
+                </p>
+              ) : null}
+            </div>
+          </>
+        ) : (
+          <div aria-hidden="true" className="space-y-5">
+            <div className="flex gap-2 overflow-hidden">
+              {Array.from({ length: 10 }, (_, i) => (
+                <div
+                  key={i}
+                  className="h-[5.6rem] w-[4.6rem] shrink-0 animate-pulse rounded-2xl bg-white ring-1 ring-line"
+                />
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+              {Array.from({ length: 6 }, (_, i) => (
+                <div key={i} className="h-12 animate-pulse rounded-2xl bg-white ring-1 ring-line" />
+              ))}
+            </div>
+          </div>
+        )}
       </fieldset>
 
       {/* 3 — details */}
@@ -257,7 +299,13 @@ export default function AppointmentForm({ services }) {
           </Field>
           <Field label={D.fields.email.label} error={errors.email?.message}>
             {(p) => (
-              <Input {...p} type="email" autoComplete="email" placeholder={D.fields.email.placeholder} {...register("email")} />
+              <Input
+                {...p}
+                type="email"
+                autoComplete="email"
+                placeholder={D.fields.email.placeholder}
+                {...register("email")}
+              />
             )}
           </Field>
           <Field label={D.fields.age.label} error={errors.age?.message}>

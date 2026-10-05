@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-05 · Current phase: **Phase 4 done → Phase 5 next**_
+_Last updated: 2026-10-05 · Current phase: **Phase 5 done → Backend phase next**_
 
 ---
 
@@ -15,8 +15,8 @@ _Last updated: 2026-10-05 · Current phase: **Phase 4 done → Phase 5 next**_
 | 2 | Homepage | ✅ Done (redesigned in Phase 3 — see design rules) |
 | 3 | Content pages: About, Services, Patient Guide, Blog list + `[slug]` | ✅ Done |
 | 4 | Interactive pages + email: Appointment, Contact, Shop + `[slug]` + Prescription upload, Nodemailer | ✅ Done |
-| 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ⏳ Next |
-| — | Backend (later): DB, Admin + Super Admin dashboard, order & prescription management, SEO admin | ⬜ Future |
+| 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ✅ Done |
+| — | Backend (next): MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | ⏳ Next |
 
 ### Phase 4 — what was built
 - Pages: `/appointment` (type → day/slot → details, `?type=online` / `?service=` prefill), `/contact` (channels, form, map, hours), `/shop` (search, category filter, `?upload=1` opens upload), `/shop/[slug]` (SSG, Product JSON-LD)
@@ -28,9 +28,17 @@ _Last updated: 2026-10-05 · Current phase: **Phase 4 done → Phase 5 next**_
 - Dev without SMTP → Nodemailer `jsonTransport` (logs instead of sending). Production without SMTP → API returns 502.
 - `components/ui/Modal.jsx` uses native `<dialog>` (focus trap/Escape for free); `components/ui/Field.jsx` = accessible inputs
 
-### Phase 5 scope (next)
-- `app/sitemap.js`, `app/robots.js`, `app/opengraph-image.jsx`, manifest/icons
-- `loading.jsx` / `error.jsx` per segment, final WCAG AA pass, Lighthouse run, Vercel env setup
+### Phase 5 — what was done
+- `app/sitemap.js`, `app/robots.js` (blocks `/api/`), `app/manifest.js`, `app/icon.svg` (replaces Next's default favicon), `app/opengraph-image.jsx` (built at build time; blog/product pages use their cover)
+- `app/(public)/loading.jsx`, `app/(public)/error.jsx`, `app/global-error.jsx` (copy in `data/statusData.js`)
+- Contact map is click-to-load (`components/contact/MapEmbed.jsx`)
+- Hydration safety: `suppressHydrationWarning` on `<body>` (ColorZilla etc.); appointment day/slot picker renders after hydration (`lib/hooks/useHydrated.js`) because the page is prerendered at build time; money/date formatting no longer depends on Intl/ICU (`lib/utils.js`)
+- Atkinson font fallback warning fixed (`adjustFontFallback: false` + Verdana/Arial fallback)
+- next/image `fill` inside sticky parent fixed on /services
+- **axe-core (WCAG 2.1 AA):** 0 violations on all 10 pages at 1440px and 390px (fixed 2 contrast issues, 1 heading-order)
+- **Lighthouse (mobile, sandbox):** Home 90/100/96/100 · Shop 92/98 (heading-order since fixed)/96/100 · Appointment 88/100/100/100 · Blog post 90/100/96/100 (perf/a11y/best-practices/SEO). Best-practices <100 only because Unsplash images were blocked in the test sandbox. Re-run on the real domain.
+- README: Vercel deploy steps + env table + launch placeholder list
+- Not done on purpose: nonce-based CSP — it forces every page to dynamic rendering (no static HTML/CDN cache). Revisit with the admin dashboard.
 
 ---
 
@@ -70,3 +78,4 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **Phase 2:** homepage (11 sections).
 - **Phase 3:** removed coral/tape/hand-drawn styles site-wide; serif accent system; Doctor section rebuilt as editorial credentials table; added PageHeader (breadcrumb + JSON-LD), CtaBand, About, Services (anchored sections), Patient Guide (TOC, urgent signs, side-effect table, print-friendly), Blog list (client filter) and Blog `[slug]` (SSG, MedicalWebPage JSON-LD).
 - **Phase 4:** eyebrow rule removed site-wide; Appointment / Contact / Shop / Product pages; 3 Route Handlers with Nodemailer; shared zod validation; tested end-to-end against a local SMTP sink (valid, invalid, cross-origin, honeypot, spoofed file, rate limit).
+- **Phase 5:** SEO files, OG image, icon/manifest, loading/error boundaries, click-to-load map, hydration + font-warning fixes, axe 0 violations, Lighthouse ~88–92 mobile perf, deploy guide.

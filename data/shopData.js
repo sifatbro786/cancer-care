@@ -7,6 +7,7 @@ export const shopData = {
     description:
       "Search by brand or generic name. Prescription medicines are dispatched only after our pharmacist checks your prescription and calls you.",
   },
+  listHeading: "Available medicines",
   searchLabel: "Search medicines",
   searchPlaceholder: "Search by name or generic, e.g. ondansetron",
   filterLabel: "Filter by category",

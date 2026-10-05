@@ -14,6 +14,8 @@ export const contactData = {
   },
   hoursTitle: "Opening hours",
   mapTitle: "Map showing the chamber location in Kafrul, Dhaka Cantonment",
+  mapLoad: "Show interactive map",
+  mapNote: "Kafrul, Dhaka Cantonment — opens Google Maps.",
   form: {
     title: "Send us a message",
     fields: {

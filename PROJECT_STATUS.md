@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-05 · Current phase: **Frontend Phases 1–5 done → Backend step B1 next** (see 7-step plan below)_
+_Last updated: 2026-10-05 · Current phase: **B1 (DB foundation) done → B2 Auth & RBAC next** (see 7-step plan below)_
 
 ---
 
@@ -16,7 +16,7 @@ _Last updated: 2026-10-05 · Current phase: **Frontend Phases 1–5 done → Bac
 | 3 | Content pages: About, Services, Patient Guide, Blog list + `[slug]` | ✅ Done |
 | 4 | Interactive pages + email: Appointment, Contact, Shop + `[slug]` + Prescription upload, Nodemailer | ✅ Done |
 | 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ✅ Done |
-| — | Backend (next): MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | ⏳ Next |
+| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅) |
 
 ### Phase 4 — what was built
 - Pages: `/appointment` (type → day/slot → details, `?type=online` / `?service=` prefill), `/contact` (channels, form, map, hours), `/shop` (search, category filter, `?upload=1` opens upload), `/shop/[slug]` (SSG, Product JSON-LD)
@@ -42,13 +42,13 @@ _Last updated: 2026-10-05 · Current phase: **Frontend Phases 1–5 done → Bac
 
 ---
 
-## Backend phase — 7-step plan (approved outline, not started)
+## Backend phase — 7-step plan (approved outline)
 
 Everything stays inside this Next.js app (Route Handlers + Server Actions + MongoDB via `MONGODB_URI`). No Express. **No VPS deploy guide** — the owner deploys himself.
 
 | Step | Scope | Status |
 |---|---|---|
-| B1 | **DB foundation** — Mongoose connection singleton; models: User, SiteSettings, Doctor, Service, ProductCategory, Product, BlogPost, Testimonial, FAQ, PageSEO, Appointment, Order, Message, Media; `npm run seed` imports `data/*.js`; `services/content.js` bodies → DB queries (signatures unchanged); cache tags + `revalidateTag`; form APIs save to DB first, then email | ⬜ |
+| B1 | **DB foundation** — Mongoose connection singleton; models: User, SiteSettings, Doctor, Service, ProductCategory, Product, BlogPost, Testimonial, FAQ, PageSEO, Appointment, Order, Message, Media; `npm run seed` imports `data/*.js`; `services/content.js` bodies → DB queries (signatures unchanged); cache tags + `revalidateTag`; form APIs save to DB first, then email | ✅ |
 | B2 | **Auth & RBAC** — `/admin/login`, bcryptjs hashes, JWT (`jose`) in httpOnly secure cookie; roles `super_admin` / `admin`; `proxy.js` guard **plus** role check inside every Server Action / API; login rate limit + temporary lockout; logout, change password; script to create the first super admin | ⬜ |
 | B3 | **Media & uploads** — public images → `/uploads` (sharp resize → webp), unlink old file on replace/delete; prescriptions stored **private** (outside public, served only to logged-in admins); media library; Unsplash placeholders replaced by uploaded images | ⬜ |
 | B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ⬜ |
@@ -56,11 +56,29 @@ Everything stays inside this Next.js app (Route Handlers + Server Actions + Mong
 | B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ⬜ |
 | B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ⬜ |
 
-New packages planned: `mongoose`, `jose`, `bcryptjs` (sharp already ships with Next).
+New packages: `mongoose` ✅ (9.x) · planned: `jose`, `bcryptjs` (sharp already ships with Next).
 
-**Open decisions (ask the owner before B1):**
-- Mongoose vs native MongoDB driver (recommended: Mongoose)
-- Roles: only `super_admin` + `admin`, or also a `pharmacist` role limited to orders?
+### B1 — what was built
+- **Mode switch by env:** `MONGODB_URI` set → MongoDB; unset → `data/*.js` (static demo / CI). Same shapes, same API contract.
+- `lib/db/connect.js` — singleton on `globalThis`, `bufferCommands:false` (fail fast), 8 s server selection, pool 10, `autoIndex` off in prod. Global `strictQuery` + **`sanitizeFilter`** (operator-injection guard; our own operators use `mongoose.trusted()`).
+- `lib/db/models/` — 15 models: User, SiteSettings (singleton, also holds careJourney + ratingSummary), Doctor, Service, ProductCategory, Product (+`sku`), BlogCategory, BlogPost (draft/published, scheduled via `publishedAt`), Testimonial (`approved`), Faq, PageSeo, Media, Appointment, Order, Message. Indexes for every admin list/queue planned in B4.
+- `services/content.js` → `services/sources/{mock,db}.js`, wrapped in `unstable_cache` with tags (`lib/cache/tags.js`) + 6 h TTL; `revalidateContent(TAGS.x)` (`lib/cache/revalidate.js`, `revalidateTag(tag,"max")`) ready for B5. New getters `getSiteSettings()` / `getPageSeo(key)` exist but are **not wired** yet (siteConfig is used by client components → B5; seo → B6).
+- `services/submissions.js` — save-then-email; unique reference with retry on collision; `notification.clinicEmailed` flag. **DB down → degrade to email-only**, 502 only if both fail.
+- Orders: price/Rx/stock come from the DB (never the client), line item snapshot (`unitPrice`, `name`), integer `subtotal`. Out-of-stock / unknown / inactive product → 422.
+- Prescriptions saved to **private storage** (`lib/server/storage.js`, `PRIVATE_STORAGE_DIR`, default `./storage`, git-ignored): UUID filename, `0600`, sha256 stored on the order; file removed if the order save fails. (Admin download route → B3/B4.)
+- Validation: service/product no longer `z.enum` of the static list — format-checked slug in the shared schema, existence checked server-side against the live catalogue. `requiresPrescription(product)` now takes the product object.
+- `/shop/[slug]` & `/blog/[slug]`: `dynamicParams = true` so admin-added items render on demand (ISR). Sitemap revalidates hourly.
+- `npm run seed` (`scripts/seed.mjs` + `scripts/register-alias.mjs`): validates every doc, upserts by natural key, default insert-missing, `--overwrite`, `--fresh` (prod needs `--yes`), then `createIndexes()`.
+- Verified: eslint 0 · build in both modes · DB-vs-mock parity on all 16 getters · E2E: appointment/contact/order saved, DB price snapshot, private file `0600`, spoofed file / unknown & out-of-stock product / cross-origin / `{"$gt":""}` payloads rejected, new DB product renders without rebuild, DB outage → fast fail / email-only fallback, pages keep serving from cache.
+
+### Known trade-offs (B1)
+- Unknown blog/product slugs now return a **soft 404** (HTTP 200 + `noindex`) because the `(public)/loading.jsx` boundary streams first (documented Next 16 behaviour). Hard 404 = cheap slug check in `proxy.js` → do it in **B2** when proxy.js is created.
+- `next build` with `MONGODB_URI` set requires the DB to be reachable (intended — fail loud).
+- No slot capacity / double-booking rule yet — decide with the client in B4 (one patient per slot? per-slot cap?).
+
+**Decided by the owner:**
+- ODM: **Mongoose**
+- Roles: **only `super_admin` and `admin`** — no pharmacist role. Admins handle orders/prescriptions; super_admin additionally manages admin users and audit log.
 
 ## Fixed decisions (do not change without the client/owner)
 - **Stack:** Next.js 16 App Router, **JavaScript only (no TypeScript)**, Tailwind v4, Framer Motion (`LazyMotion` + `m.*` only), Lucide (v1 — no brand icons; see `components/icons/BrandIcons.jsx`), Nodemailer.
@@ -88,9 +106,9 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 
 ---
 
-## Backend-phase notes (from Phase 4)
-- `.env` already defines `MONGODB_URI`. Persist appointments/orders/messages in the DB inside the same Route Handlers, before emailing — response contract stays `{ ok, reference }` / `{ ok:false, message, fieldErrors }`.
-- Save prescription buffers to `/uploads` on the VPS instead of only attaching them.
+## Backend-phase notes
+- ✅ (B1) Appointments/orders/messages persisted before emailing; response contract unchanged.
+- ✅ (B1) Prescription buffers saved to private storage (not `/public/uploads` — patient data).
 - Replace the in-memory rate limiter store with Redis if running more than one instance.
 
 ## Last session log
@@ -99,3 +117,4 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **Phase 3:** removed coral/tape/hand-drawn styles site-wide; serif accent system; Doctor section rebuilt as editorial credentials table; added PageHeader (breadcrumb + JSON-LD), CtaBand, About, Services (anchored sections), Patient Guide (TOC, urgent signs, side-effect table, print-friendly), Blog list (client filter) and Blog `[slug]` (SSG, MedicalWebPage JSON-LD).
 - **Phase 4:** eyebrow rule removed site-wide; Appointment / Contact / Shop / Product pages; 3 Route Handlers with Nodemailer; shared zod validation; tested end-to-end against a local SMTP sink (valid, invalid, cross-origin, honeypot, spoofed file, rate limit).
 - **Phase 5:** SEO files, OG image, icon/manifest, loading/error boundaries, click-to-load map, hydration + font-warning fixes, axe 0 violations, Lighthouse ~88–92 mobile perf, deploy guide.
+- **B1:** Mongoose + 15 models, seed script, content service → DB with cache tags, forms save-then-email, private prescription storage, dynamic slugs. Next: **B2 Auth & RBAC** (+ hard 404 in proxy.js).

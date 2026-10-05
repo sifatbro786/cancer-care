@@ -1,92 +1,138 @@
 import "server-only";
-
-import { doctorData } from "@/data/doctorData";
-import { servicesData, careJourney } from "@/data/servicesData";
-import { productsData, productCategories } from "@/data/productsData";
-import { blogsData, blogCategories } from "@/data/blogsData";
-import { testimonialsData, ratingSummary } from "@/data/testimonialsData";
-import { faqData } from "@/data/faqData";
+import { unstable_cache } from "next/cache";
+import { isDbConfigured } from "@/lib/db/connect";
+import { CONTENT_TTL, TAGS } from "@/lib/cache/tags";
 import { readingTime } from "@/lib/utils";
+import { mockSource } from "@/services/sources/mock";
+import { dbSource } from "@/services/sources/db";
 
 /**
  * Data-access layer.
  * ─────────────────────────────────────────────────────────────────
- * Pages & server components call ONLY these async functions.
- * Now:     they resolve mock data from `data/`.
- * Backend: the whole backend lives inside this Next.js app (Node 24) —
- *          no separate Express server, no HTTP round-trip. Each body is
- *          swapped for a direct DB query (e.g. `await Doctor.findOne().lean()`);
- *          signatures & return shapes stay identical, so no UI changes.
+ * Pages & server components call ONLY these async functions —
+ * signatures and return shapes are unchanged from the static phase.
+ *
+ * Source:  MONGODB_URI set   → MongoDB (services/sources/db.js), cached
+ *                              with tags; admin writes call
+ *                              revalidateContent(TAGS.x) (lib/cache/revalidate.js)
+ *          MONGODB_URI unset → data/*.js (static demo / CI / UI work)
  * ─────────────────────────────────────────────────────────────────
  */
 
+const useDb = isDbConfigured();
+
+if (!useDb && process.env.NODE_ENV === "production" && !globalThis.__ccMockWarned) {
+  globalThis.__ccMockWarned = true;
+  console.warn("[content] MONGODB_URI not set — serving static data from data/*.js.");
+}
+
+const source = useDb ? dbSource : mockSource;
+
+/** Wrap a source function in the Next data cache with the given tags (DB mode only). */
+const cached = (name, tags) =>
+  useDb
+    ? unstable_cache((...args) => source[name](...args), ["content", name], { tags, revalidate: CONTENT_TTL })
+    : source[name];
+
+const q = {
+  doctor: cached("getDoctor", [TAGS.doctor]),
+  services: cached("getServices", [TAGS.services]),
+  serviceBySlug: cached("getServiceBySlug", [TAGS.services]),
+  careJourney: cached("getCareJourney", [TAGS.site]),
+  products: cached("getProducts", [TAGS.products]),
+  productBySlug: cached("getProductBySlug", [TAGS.products]),
+  productCategories: cached("getProductCategories", [TAGS.productCategories]),
+  productSlugs: cached("getAllProductSlugs", [TAGS.products]),
+  blogs: cached("getBlogs", [TAGS.blog]),
+  blogBySlug: cached("getBlogBySlug", [TAGS.blog]),
+  blogCategories: cached("getBlogCategories", [TAGS.blogCategories]),
+  blogSlugs: cached("getAllBlogSlugs", [TAGS.blog]),
+  testimonials: cached("getTestimonials", [TAGS.testimonials, TAGS.site]),
+  faqs: cached("getFaqs", [TAGS.faqs]),
+  siteSettings: cached("getSiteSettings", [TAGS.site]),
+  pageSeo: cached("getPageSeo", [TAGS.seo]),
+};
+
 export async function getDoctor() {
-  return doctorData;
+  return q.doctor();
 }
 
 export async function getServices() {
-  return servicesData;
+  return q.services();
 }
 
 export async function getServiceBySlug(slug) {
-  return servicesData.find((s) => s.slug === slug) ?? null;
+  if (typeof slug !== "string" || !slug) return null;
+  return q.serviceBySlug(slug);
 }
 
 export async function getCareJourney() {
-  return careJourney;
+  return q.careJourney();
 }
 
-/** Filter + search products. Mirrors the future `GET /api/products` query params. */
-export async function getProducts({ category = "all", q = "" } = {}) {
-  const term = q.trim().toLowerCase();
-  return productsData.filter((p) => {
-    const inCategory = category === "all" || p.category === category;
-    const matches =
-      !term || p.name.toLowerCase().includes(term) || p.generic.toLowerCase().includes(term);
-    return inCategory && matches;
-  });
+/**
+ * Filter + search products. Category is resolved in the query (and cached per category);
+ * the free-text term filters the cached list — the catalogue is small, and this keeps
+ * arbitrary user input out of cache keys.
+ */
+export async function getProducts({ category = "all", q: term = "" } = {}) {
+  const list = await q.products({ category: String(category) });
+  const t = String(term).trim().toLowerCase();
+  if (!t) return list;
+  return list.filter((p) => p.name.toLowerCase().includes(t) || p.generic?.toLowerCase().includes(t));
 }
 
 export async function getProductBySlug(slug) {
-  return productsData.find((p) => p.slug === slug) ?? null;
+  if (typeof slug !== "string" || !slug) return null;
+  return q.productBySlug(slug);
 }
 
 export async function getProductCategories() {
-  return productCategories;
+  return q.productCategories();
 }
 
 const withReadingTime = (post) => ({ ...post, readingMinutes: readingTime(post.content) });
 
 export async function getBlogs({ featuredOnly = false, limit } = {}) {
-  const list = blogsData
-    .filter((b) => (featuredOnly ? b.featured : true))
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-    .map(withReadingTime);
+  const list = (await q.blogs({ featuredOnly: Boolean(featuredOnly) })).map(withReadingTime);
   return typeof limit === "number" ? list.slice(0, limit) : list;
 }
 
 export async function getBlogBySlug(slug) {
-  const post = blogsData.find((b) => b.slug === slug);
+  if (typeof slug !== "string" || !slug) return null;
+  const post = await q.blogBySlug(slug);
   return post ? withReadingTime(post) : null;
 }
 
 export async function getBlogCategories() {
-  return blogCategories;
+  return q.blogCategories();
 }
 
 export async function getTestimonials() {
-  return { items: testimonialsData, summary: ratingSummary };
+  return q.testimonials();
 }
 
 export async function getFaqs() {
-  return faqData;
+  return q.faqs();
 }
 
-/** Static params helpers for `generateStaticParams` (SSG on Vercel). */
+/** Static params helpers for `generateStaticParams` (pre-rendered at build; new slugs render on demand). */
 export async function getAllProductSlugs() {
-  return productsData.map((p) => ({ slug: p.slug }));
+  return q.productSlugs();
 }
 
 export async function getAllBlogSlugs() {
-  return blogsData.map((b) => ({ slug: b.slug }));
+  return q.blogSlugs();
+}
+
+/**
+ * Settings & per-page SEO from the DB.
+ * Not consumed by the UI yet — layout/header/footer move to these in B5, lib/seo.js in B6.
+ */
+export async function getSiteSettings() {
+  return q.siteSettings();
+}
+
+export async function getPageSeo(key) {
+  return q.pageSeo(String(key));
 }

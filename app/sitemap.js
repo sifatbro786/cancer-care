@@ -1,7 +1,9 @@
 import { siteConfig } from "@/data/siteConfig";
 import { getAllProductSlugs, getBlogs } from "@/services/content";
 
-/** /sitemap.xml — static routes + every blog post and product (regenerated each build). */
+/** /sitemap.xml — static routes + every blog post and product. Rebuilt at most hourly so admin-added slugs appear. */
+export const revalidate = 3600;
+
 export default async function sitemap() {
   const base = siteConfig.url;
   const [posts, products] = await Promise.all([getBlogs(), getAllProductSlugs()]);

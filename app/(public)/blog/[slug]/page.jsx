@@ -13,7 +13,9 @@ import BlogCard from "@/components/blog/BlogCard";
 import CtaBand from "@/components/sections/CtaBand";
 
 /** Prerender every article at build time; unknown slugs → 404 (no runtime rendering). */
-export const dynamicParams = false;
+// Slugs known at build are pre-rendered; ones added later from the admin render on first
+// visit and are cached (ISR). Unknown slugs still 404 via notFound().
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   return getAllBlogSlugs();

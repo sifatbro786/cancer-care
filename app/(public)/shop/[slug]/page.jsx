@@ -10,7 +10,9 @@ import SmartImage from "@/components/ui/SmartImage";
 import JsonLd from "@/components/seo/JsonLd";
 import ProductActions from "@/components/shop/ProductActions";
 
-export const dynamicParams = false;
+// Slugs known at build are pre-rendered; ones added later from the admin render on first
+// visit and are cached (ISR). Unknown slugs still 404 via notFound().
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   return getAllProductSlugs();

@@ -11,6 +11,7 @@ export const shopData = {
   searchLabel: "Search medicines",
   searchPlaceholder: "Search by name or generic, e.g. ondansetron",
   filterLabel: "Filter by category",
+  allCategoriesLabel: "All medicines", // "all" filter chip — not a stored category
   resultsLabel: (n) => `${n} ${n === 1 ? "medicine" : "medicines"}`,
   emptyTitle: "No medicines match your search",
   emptyText: "Try another name, or upload your prescription and our pharmacist will source it for you.",

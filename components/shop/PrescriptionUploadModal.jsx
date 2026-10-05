@@ -27,7 +27,7 @@ function OrderForm({ product, onDone }) {
   const [fileError, setFileError] = useState("");
   const [formError, setFormError] = useState("");
   const [reference, setReference] = useState("");
-  const rx = requiresPrescription(product?.slug);
+  const rx = requiresPrescription(product);
 
   const {
     register,
@@ -177,7 +177,7 @@ function OrderForm({ product, onDone }) {
  */
 export default function PrescriptionUploadModal({ open, product, onClose }) {
   const M = shopData.modal;
-  const rx = requiresPrescription(product?.slug);
+  const rx = requiresPrescription(product);
   return (
     <Modal open={open} onClose={onClose} title={rx ? M.rxTitle : M.title} description={M.intro} closeLabel={M.close}>
       <OrderForm key={product?.slug ?? "general"} product={product} onDone={onClose} />

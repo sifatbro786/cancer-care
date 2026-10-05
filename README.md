@@ -8,8 +8,19 @@ Node.js **24**. The backend is built **inside this Next.js app** (Route Handlers
 ```bash
 npm install
 cp .env.example .env.local   # fill SMTP values (without them, dev logs emails instead of sending)
+npm run seed                 # once MONGODB_URI is set: imports data/*.js into MongoDB + creates indexes
 npm run dev
 ```
+
+### Database (B1)
+- **`MONGODB_URI` set** → pages read MongoDB through `services/content.js` (cached with tags, 6 h safety TTL); forms save to the DB **first**, then email.
+- **`MONGODB_URI` unset** → static demo mode: content from `data/*.js`, forms are email-only. Same UI, same API responses.
+- `npm run seed` inserts only what is missing — safe to re-run, never overwrites admin edits.
+  `npm run seed -- --overwrite` resets content to `data/*.js`; `-- --fresh` wipes content collections first (needs `--yes` in production).
+  Users, appointments, orders and messages are never touched by the seed.
+- `next build` with `MONGODB_URI` set needs the database reachable (pages are pre-rendered from it).
+- Prescriptions are written to **private** storage (`PRIVATE_STORAGE_DIR`, default `./storage`, git-ignored) — never under `public/`. Back it up together with the DB.
+- If the DB is down at submit time, the form degrades to email-only (502 only if email fails too).
 
 ## Architecture
 
@@ -26,8 +37,15 @@ components/
   brand/ icons/ seo/ providers/
 data/                   Mock content — the ONLY place copy & content lives
 lib/                    utils (cn, formatBDT, readingTime…), seo builders, icon map
-services/content.js     Data-access layer (server-only). Pages call these async functions.
-                        Backend phase swaps their bodies for direct DB queries — UI stays untouched.
+  db/connect.js         Mongoose connection singleton (+ strictQuery, sanitizeFilter)
+  db/models/            One file per model; import from "@/lib/db/models"
+  cache/                Cache tags + revalidateContent() for admin writes
+  server/storage.js     Private file storage (prescriptions)
+services/content.js     Read side (server-only). Pages call ONLY these async functions.
+  sources/mock.js       data/*.js source   ─┐ identical return shapes
+  sources/db.js         MongoDB source     ─┘
+services/submissions.js Write side for the public forms (save → email)
+scripts/seed.mjs        npm run seed (register-alias.mjs resolves "@/" for plain Node)
 ```
 
 ### Rules
@@ -62,7 +80,7 @@ Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-visi
    | `SMTP_USER` / `SMTP_PASS` | Gmail address / **App Password** (not the normal password) |
    | `MAIL_FROM` | `Cancer Care <your-account@gmail.com>` |
    | `MAIL_TO` | inbox that receives appointments, messages and orders |
-   | `MONGODB_URI` | only needed once the database phase starts |
+   | `MONGODB_URI` | leave unset on Vercel for the static demo; set on the VPS |
 4. **Deploy**, then **Settings → Domains** → add the domain and set `NEXT_PUBLIC_SITE_URL` to it → **Redeploy** (the URL is baked in at build time).
 5. Smoke test: submit the contact form, book an appointment, upload a test prescription → check the `MAIL_TO` inbox.
 6. Submit `https://yourdomain/sitemap.xml` in Google Search Console.
@@ -71,7 +89,7 @@ Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-visi
 > The rate limiter is in-memory per instance; for a strict global limit add Upstash Redis.
 
 ### VPS (later)
-`npm ci && npm run build && pm2 start npm --name cancer-care -- start` behind Nginx + Certbot. Same env vars in `.env.production`.
+`npm ci && npm run seed && npm run build && pm2 start npm --name cancer-care -- start` behind Nginx + Certbot. Same env vars in `.env.production`, plus `MONGODB_URI` and an absolute `PRIVATE_STORAGE_DIR`.
 
 ## Placeholders to replace before launch
 All marked `// TODO(client)`:

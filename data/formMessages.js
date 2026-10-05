@@ -13,6 +13,8 @@ export const formMessages = {
   type: "Please choose the type of consultation.",
   quantity: "Quantity must be between 1 and 20.",
   address: "Please enter a delivery address.",
+  service: "Please choose a service from the list.",
+  product: "This medicine is not available right now. Please choose another or upload your prescription.",
   file: {
     required: "Please attach the prescription.",
     type: "Only JPG, PNG, WEBP or PDF files are accepted.",

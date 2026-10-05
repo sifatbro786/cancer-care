@@ -1,20 +1,25 @@
 import { z } from "zod";
-import { productsData } from "@/data/productsData";
+import { formMessages as M } from "@/data/formMessages";
 import { shopData } from "@/data/shopData";
 import { orderSchema, PRESCRIPTION_MAX_BYTES, requiresPrescription } from "@/lib/validation/order";
 import { rateLimit } from "@/lib/server/rateLimit";
-import { getClientIp, isSameOrigin, makeReference, reply } from "@/lib/server/request";
+import { getClientIp, isSameOrigin, makeReference, reply, requestMeta } from "@/lib/server/request";
 import { readPrescription } from "@/lib/server/files";
+import { removePrivateFile, savePrivateFile } from "@/lib/server/storage";
 import { sendMail } from "@/lib/server/mailer";
 import { orderEmail } from "@/lib/server/emailTemplates";
+import { getProductBySlug } from "@/services/content";
+import { markNotified, saveOrder } from "@/services/submissions";
+import { isDbConfigured } from "@/lib/db/connect";
 
 // File + text fields; anything bigger is rejected before parsing
 const MAX_BODY = PRESCRIPTION_MAX_BYTES + 64 * 1024;
 
 /**
  * POST /api/order — multipart/form-data with optional `prescription` file.
- * The file is verified by magic bytes and emailed as an attachment.
- * Backend phase: write the buffer to /uploads (VPS) and store the path + order in the DB.
+ * Pipeline: origin → rate limit → size cap → honeypot → zod → product lookup (DB price)
+ *           → magic-byte file check → private storage → save order → email (+ attachment).
+ * If the order save fails after the file was written, the file is removed (no orphans).
  */
 export async function POST(request) {
   if (!isSameOrigin(request)) return reply.forbidden();
@@ -42,24 +47,48 @@ export async function POST(request) {
   if (!parsed.success) return reply.invalid(z.flattenError(parsed.error).fieldErrors);
 
   const o = parsed.data;
-  const rx = requiresPrescription(o.product);
+
+  // Product must exist, be active and in stock — price & Rx flag come from the catalogue, never the client
+  const product = o.product ? await getProductBySlug(o.product) : null;
+  if (o.product && (!product || !product.inStock)) return reply.invalid({ product: [M.product] });
+
+  const rx = requiresPrescription(product);
   const upload = form.get("prescription");
   const hasFile = upload && typeof upload !== "string" && upload.size > 0;
 
-  let attachment;
+  let file = null;
   if (rx || hasFile) {
-    const file = await readPrescription(upload);
+    file = await readPrescription(upload);
     if (!file.ok) {
       if (file.tooLarge) return reply.tooLarge(file.error);
       return reply.invalid({ prescription: [file.error] });
     }
-    const reference = makeReference("RX");
-    attachment = { filename: `prescription-${reference}.${file.ext}`, content: file.buffer, contentType: file.mime };
-    o.reference = reference;
   }
 
-  const reference = o.reference ?? makeReference("RX");
-  const product = productsData.find((p) => p.slug === o.product);
+  // Persist: file first (private storage), then the order that points at it
+  let stored = null;
+  let record = null;
+  if (isDbConfigured()) {
+    try {
+      if (file) stored = await savePrivateFile({ buffer: file.buffer, ext: file.ext, folder: "prescriptions" });
+      record = await saveOrder(o, {
+        product,
+        rx,
+        file: stored ? { ...stored, mime: file.mime } : null,
+        meta: requestMeta(request),
+      });
+    } catch (err) {
+      // DB down → no orphan file; degrade to email-only (prescription goes as attachment)
+      console.error("[order] save failed, falling back to email-only:", err?.message);
+      if (stored) await removePrivateFile(stored.path);
+    }
+  }
+
+  const reference = record?.reference ?? makeReference("RX");
+  const attachment = file
+    ? { filename: `prescription-${reference}.${file.ext}`, content: file.buffer, contentType: file.mime }
+    : null;
+
   const sent = await sendMail({
     ...orderEmail({
       ...o,
@@ -70,7 +99,8 @@ export async function POST(request) {
     }),
     attachments: attachment ? [attachment] : undefined,
   });
-  if (!sent) return reply.failed();
+  await markNotified(record, sent);
+  if (!sent && !record) return reply.failed();
 
   return reply.ok({ reference });
 }

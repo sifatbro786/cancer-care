@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-05 · Current phase: **Phase 5 done → Backend phase next**_
+_Last updated: 2026-10-05 · Current phase: **Frontend Phases 1–5 done → Backend step B1 next** (see 7-step plan below)_
 
 ---
 
@@ -41,6 +41,26 @@ _Last updated: 2026-10-05 · Current phase: **Phase 5 done → Backend phase nex
 - Not done on purpose: nonce-based CSP — it forces every page to dynamic rendering (no static HTML/CDN cache). Revisit with the admin dashboard.
 
 ---
+
+## Backend phase — 7-step plan (approved outline, not started)
+
+Everything stays inside this Next.js app (Route Handlers + Server Actions + MongoDB via `MONGODB_URI`). No Express. **No VPS deploy guide** — the owner deploys himself.
+
+| Step | Scope | Status |
+|---|---|---|
+| B1 | **DB foundation** — Mongoose connection singleton; models: User, SiteSettings, Doctor, Service, ProductCategory, Product, BlogPost, Testimonial, FAQ, PageSEO, Appointment, Order, Message, Media; `npm run seed` imports `data/*.js`; `services/content.js` bodies → DB queries (signatures unchanged); cache tags + `revalidateTag`; form APIs save to DB first, then email | ⬜ |
+| B2 | **Auth & RBAC** — `/admin/login`, bcryptjs hashes, JWT (`jose`) in httpOnly secure cookie; roles `super_admin` / `admin`; `proxy.js` guard **plus** role check inside every Server Action / API; login rate limit + temporary lockout; logout, change password; script to create the first super admin | ⬜ |
+| B3 | **Media & uploads** — public images → `/uploads` (sharp resize → webp), unlink old file on replace/delete; prescriptions stored **private** (outside public, served only to logged-in admins); media library; Unsplash placeholders replaced by uploaded images | ⬜ |
+| B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ⬜ |
+| B5 | **Content CMS** — CRUD for doctor profile, site settings (phone, hours, socials, map), services, products & categories, blog (block editor, draft/publish), testimonials (approve), FAQ (ordering); zod on every form; save → revalidate affected public pages | ⬜ |
+| B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ⬜ |
+| B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ⬜ |
+
+New packages planned: `mongoose`, `jose`, `bcryptjs` (sharp already ships with Next).
+
+**Open decisions (ask the owner before B1):**
+- Mongoose vs native MongoDB driver (recommended: Mongoose)
+- Roles: only `super_admin` + `admin`, or also a `pharmacist` role limited to orders?
 
 ## Fixed decisions (do not change without the client/owner)
 - **Stack:** Next.js 16 App Router, **JavaScript only (no TypeScript)**, Tailwind v4, Framer Motion (`LazyMotion` + `m.*` only), Lucide (v1 — no brand icons; see `components/icons/BrandIcons.jsx`), Nodemailer.

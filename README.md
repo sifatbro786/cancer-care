@@ -22,6 +22,15 @@ npm run dev
 - Prescriptions are written to **private** storage (`PRIVATE_STORAGE_DIR`, default `./storage`, git-ignored) — never under `public/`. Back it up together with the DB.
 - If the DB is down at submit time, the form degrades to email-only (502 only if email fails too).
 
+### Admin (B2)
+```bash
+# .env: AUTH_SECRET=<48 random bytes>   node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+npm run create-admin -- --email doctor@clinic.com --name "Dr. Farhana Rahman"   # first user → super_admin
+npm run create-admin -- --email doctor@clinic.com --reset-password                # forgot / locked out
+```
+Sign in at `/admin/login`. Sessions last 12 h; changing a password signs out every other device.
+Every Server Action / admin Route Handler must call `authorize(PERMISSION)` / `withAdmin(PERMISSION, …)` from `lib/auth/session.js` — the proxy and layouts are not enough on their own.
+
 ## Architecture
 
 ```
@@ -45,7 +54,12 @@ services/content.js     Read side (server-only). Pages call ONLY these async fun
   sources/mock.js       data/*.js source   ─┐ identical return shapes
   sources/db.js         MongoDB source     ─┘
 services/submissions.js Write side for the public forms (save → email)
+services/auth.js        Login / password checks (lockout, rate limits)
+lib/auth/               config (cookie, TTL) · jwt (jose) · rbac (roles → permissions) · session (DB-verified) · password (bcrypt)
+proxy.js                /admin guard (optimistic), /api/admin 401, real 404 for unknown shop/blog slugs
+app/(admin)/            /admin/login + (panel)/ (layout = requireUser) · _actions/ = Server Actions
 scripts/seed.mjs        npm run seed (register-alias.mjs resolves "@/" for plain Node)
+scripts/create-admin.mjs npm run create-admin
 ```
 
 ### Rules
@@ -81,6 +95,7 @@ Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-visi
    | `MAIL_FROM` | `Cancer Care <your-account@gmail.com>` |
    | `MAIL_TO` | inbox that receives appointments, messages and orders |
    | `MONGODB_URI` | leave unset on Vercel for the static demo; set on the VPS |
+   | `AUTH_SECRET` | required for `/admin` (≥32 random chars) |
 4. **Deploy**, then **Settings → Domains** → add the domain and set `NEXT_PUBLIC_SITE_URL` to it → **Redeploy** (the URL is baked in at build time).
 5. Smoke test: submit the contact form, book an appointment, upload a test prescription → check the `MAIL_TO` inbox.
 6. Submit `https://yourdomain/sitemap.xml` in Google Search Console.
@@ -89,7 +104,7 @@ Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-visi
 > The rate limiter is in-memory per instance; for a strict global limit add Upstash Redis.
 
 ### VPS (later)
-`npm ci && npm run seed && npm run build && pm2 start npm --name cancer-care -- start` behind Nginx + Certbot. Same env vars in `.env.production`, plus `MONGODB_URI` and an absolute `PRIVATE_STORAGE_DIR`.
+`npm ci && npm run seed && npm run build && pm2 start npm --name cancer-care -- start` behind Nginx + Certbot. Same env vars in `.env.production`, plus `MONGODB_URI`, `AUTH_SECRET` and an absolute `PRIVATE_STORAGE_DIR`. Then `npm run create-admin` once.
 
 ## Placeholders to replace before launch
 All marked `// TODO(client)`:

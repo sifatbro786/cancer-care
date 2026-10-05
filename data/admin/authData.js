@@ -1,0 +1,84 @@
+/** Admin authentication copy (login, account, shell). Kept out of components like all other copy. */
+export const authData = {
+  meta: { loginTitle: "Sign in", accountTitle: "Your account", overviewTitle: "Overview" },
+
+  login: {
+    eyebrow: "Staff area",
+    title: "Welcome back",
+    highlight: "back",
+    intro: "Sign in to manage appointments, prescriptions and site content.",
+    email: "Email",
+    password: "Password",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
+    submit: "Sign in",
+    submitting: "Signing in…",
+    footnote: "Patient? This area is for clinic staff only.",
+    backToSite: "Back to the website",
+  },
+
+  account: {
+    eyebrow: "Account",
+    title: "Your account",
+    highlight: "account",
+    profileHeading: "Profile",
+    roleLabel: "Role",
+    lastLoginLabel: "Last sign-in",
+    passwordHeading: "Change password",
+    passwordIntro: "Changing your password signs you out on every other device.",
+    current: "Current password",
+    next: "New password",
+    nextHint: "At least 10 characters. A short sentence is easier to remember than a jumble.",
+    confirm: "Repeat new password",
+    submit: "Update password",
+    submitting: "Updating…",
+    success: "Password updated. Other devices have been signed out.",
+  },
+
+  shell: {
+    brand: "Cancer Care",
+    brandSub: "Admin",
+    nav: [
+      { label: "Overview", href: "/admin", icon: "layout" },
+      { label: "Account", href: "/admin/account", icon: "user" },
+    ],
+    viewSite: "View website",
+    signOut: "Sign out",
+    menu: "Menu",
+    close: "Close menu",
+    navLabel: "Admin navigation",
+  },
+
+  overview: {
+    eyebrow: "Overview",
+    greeting: (name) => `Good to see you, ${name}`,
+    intro: "What needs attention today.",
+    cards: [
+      { key: "appointments", label: "New appointment requests", hint: "Waiting for a confirmation call" },
+      { key: "prescriptions", label: "Prescriptions to verify", hint: "Orders waiting for pharmacist review" },
+      { key: "messages", label: "Unread messages", hint: "From the contact form" },
+      { key: "unsent", label: "Not emailed", hint: "Saved, but the notification email failed" },
+    ],
+    dbOff: "Database is not connected (MONGODB_URI is not set) — counts are unavailable.",
+    denied: "Your role doesn't have access to that section.",
+  },
+
+  roles: { super_admin: "Super admin", admin: "Admin" },
+
+  errors: {
+    invalid: "Email or password is incorrect.",
+    locked: (minutes) =>
+      `Too many failed attempts. Please wait ${minutes} minute${minutes === 1 ? "" : "s"} and try again.`,
+    rateLimited: "Too many sign-in attempts from this network. Please wait a few minutes.",
+    config: "Sign-in is not configured on the server yet (AUTH_SECRET / database). Please contact the developer.",
+    server: "Something went wrong on our side. Please try again.",
+    required: "This field is required.",
+    email: "Enter a valid email address.",
+    passwordShort: "Use at least 10 characters.",
+    passwordLong: "That password is too long (max 72 bytes).",
+    passwordSame: "The new password must be different from the current one.",
+    passwordMismatch: "The two passwords don't match.",
+    currentWrong: "Your current password is incorrect.",
+    sessionExpired: "Your session has ended. Please sign in again.",
+  },
+};

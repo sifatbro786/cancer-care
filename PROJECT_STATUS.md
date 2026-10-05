@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-05 · Current phase: **B1 (DB foundation) done → B2 Auth & RBAC next** (see 7-step plan below)_
+_Last updated: 2026-10-05 · Current phase: **B1–B2 done → B3 Media & uploads next** (see 7-step plan below)_
 
 ---
 
@@ -16,7 +16,7 @@ _Last updated: 2026-10-05 · Current phase: **B1 (DB foundation) done → B2 Aut
 | 3 | Content pages: About, Services, Patient Guide, Blog list + `[slug]` | ✅ Done |
 | 4 | Interactive pages + email: Appointment, Contact, Shop + `[slug]` + Prescription upload, Nodemailer | ✅ Done |
 | 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ✅ Done |
-| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅) |
+| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅) |
 
 ### Phase 4 — what was built
 - Pages: `/appointment` (type → day/slot → details, `?type=online` / `?service=` prefill), `/contact` (channels, form, map, hours), `/shop` (search, category filter, `?upload=1` opens upload), `/shop/[slug]` (SSG, Product JSON-LD)
@@ -49,14 +49,14 @@ Everything stays inside this Next.js app (Route Handlers + Server Actions + Mong
 | Step | Scope | Status |
 |---|---|---|
 | B1 | **DB foundation** — Mongoose connection singleton; models: User, SiteSettings, Doctor, Service, ProductCategory, Product, BlogPost, Testimonial, FAQ, PageSEO, Appointment, Order, Message, Media; `npm run seed` imports `data/*.js`; `services/content.js` bodies → DB queries (signatures unchanged); cache tags + `revalidateTag`; form APIs save to DB first, then email | ✅ |
-| B2 | **Auth & RBAC** — `/admin/login`, bcryptjs hashes, JWT (`jose`) in httpOnly secure cookie; roles `super_admin` / `admin`; `proxy.js` guard **plus** role check inside every Server Action / API; login rate limit + temporary lockout; logout, change password; script to create the first super admin | ⬜ |
+| B2 | **Auth & RBAC** — `/admin/login`, bcryptjs hashes, JWT (`jose`) in httpOnly secure cookie; roles `super_admin` / `admin`; `proxy.js` guard **plus** role check inside every Server Action / API; login rate limit + temporary lockout; logout, change password; script to create the first super admin | ✅ |
 | B3 | **Media & uploads** — public images → `/uploads` (sharp resize → webp), unlink old file on replace/delete; prescriptions stored **private** (outside public, served only to logged-in admins); media library; Unsplash placeholders replaced by uploaded images | ⬜ |
 | B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ⬜ |
 | B5 | **Content CMS** — CRUD for doctor profile, site settings (phone, hours, socials, map), services, products & categories, blog (block editor, draft/publish), testimonials (approve), FAQ (ordering); zod on every form; save → revalidate affected public pages | ⬜ |
 | B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ⬜ |
 | B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ⬜ |
 
-New packages: `mongoose` ✅ (9.x) · planned: `jose`, `bcryptjs` (sharp already ships with Next).
+New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ (sharp already ships with Next).
 
 ### B1 — what was built
 - **Mode switch by env:** `MONGODB_URI` set → MongoDB; unset → `data/*.js` (static demo / CI). Same shapes, same API contract.
@@ -74,10 +74,30 @@ New packages: `mongoose` ✅ (9.x) · planned: `jose`, `bcryptjs` (sharp already
 ### Known trade-offs (B1)
 - Unknown blog/product slugs now return a **soft 404** (HTTP 200 + `noindex`) because the `(public)/loading.jsx` boundary streams first (documented Next 16 behaviour). Hard 404 = cheap slug check in `proxy.js` → do it in **B2** when proxy.js is created.
 - `next build` with `MONGODB_URI` set requires the DB to be reachable (intended — fail loud).
-- No slot capacity / double-booking rule yet — decide with the client in B4 (one patient per slot? per-slot cap?).
+- ~~Soft 404 for unknown slugs~~ → fixed in B2 (proxy.js returns a real 404).
+
+### B2 — what was built
+- **Session:** HS256 JWT (`jose`) in an httpOnly cookie — `__Host-cc_admin` in production (Secure, Path=/, host-bound), `cc_admin` in dev; `SameSite=Lax`; 12 h absolute lifetime. Payload = user id + role only. Secret: `AUTH_SECRET` (≥32 chars; missing → admin login disabled, fail closed).
+- **Revocation without a sessions table:** every admin request re-reads the user (`getCurrentUser`, React `cache()` per request): must exist + `active`; token `iat` must be ≥ `passwordChangedAt`; role comes from the DB (demotion is instant).
+- **Layers:** `proxy.js` = optimistic JWT check (redirect to `/admin/login?next=…`, JSON 401 for `/api/admin/**`) → `(panel)/layout.jsx` `requireUser()` → each page `requireUser(PERMISSION)` → each Server Action `authorize(PERMISSION)` / Route Handler `withAdmin(PERMISSION, handler)`. Never trust the layout alone.
+- **RBAC:** `lib/auth/rbac.js` — `admin`: inbox read/write, content, SEO. `super_admin`: + users, audit. One table for UI and server.
+- **Login hardening:** bcrypt cost 12 (dummy-hash compare for unknown emails → no timing enumeration); same generic error for every failure; limits: 20/15 min per IP, 5/15 min per email (in memory, identical for real & fake accounts), 5 failures → 15 min DB lockout (survives restarts; correct password refused while locked); disabled accounts checked only after a correct password.
+- **Password policy:** ≥10 chars, ≤72 **bytes** (bcrypt limit; Bangla chars = 3 bytes), must differ from current. Change password → `passwordChangedAt` → every other device signed out, this one re-issued.
+- **Open-redirect guard:** `safeAdminPath()` only allows `/admin…` targets.
+- **Pages:** `/admin/login` (editorial split layout, show-password toggle, works without JS), `/admin` overview (new appointments, prescriptions to verify, unread messages, **not-emailed** records), `/admin/account` (profile + change password). Admin chrome: sidebar ≥lg, compact header + tab row on mobile.
+- **Never indexed:** page `robots` noindex + `X-Robots-Tag` + `Cache-Control: private, no-store` (next.config) + `Disallow: /admin` (robots.txt).
+- **Hard 404:** `proxy.js` checks `/shop/:slug` and `/blog/:slug` against an in-process slug index (`lib/server/slugIndex.js`: 60 s TTL, forced refresh on miss ≤ every 5 s, fails open) → real 404 status for unknown slugs.
+- **CLI:** `npm run create-admin -- --email … --name "…"` (first user is forced to super_admin; hidden password prompt or `ADMIN_PASSWORD` env, policy-checked) · `-- --email … --reset-password [--activate]` = recovery (unlocks + signs out everywhere).
+- Verified: eslint 0 · build (DB + demo mode) · 17/17 Playwright E2E (guard + `next`, generic errors, email kept, login → next, cookie flags, already-signed-in bounce, open redirect, wrong current pw, change pw signs out other device but not this one, logout, lockout + correct pw refused while locked) · `alg:none` forged token rejected · 1440 + 390 screenshots.
+
+### B2 notes / trade-offs
+- Logout clears this browser's cookie; a stolen token stays valid until it expires (≤12 h) unless the password is changed or the user is disabled. Acceptable for 2–3 staff; a session table can come later if needed.
+- Rate limits are in memory (single PM2 process = exact). Use Redis if you scale to several instances.
+- No audit log yet (B6) — sign-ins/lockouts/password changes are written to the server log (`[auth] …`).
 
 **Decided by the owner:**
 - ODM: **Mongoose**
+- **Appointments: no per-slot limit** — any number of requests per slot; the clinic calls each patient to confirm the final time (B4 builds the inbox around this: status New → Confirmed by phone).
 - Roles: **only `super_admin` and `admin`** — no pharmacist role. Admins handle orders/prescriptions; super_admin additionally manages admin users and audit log.
 
 ## Fixed decisions (do not change without the client/owner)
@@ -117,4 +137,5 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **Phase 3:** removed coral/tape/hand-drawn styles site-wide; serif accent system; Doctor section rebuilt as editorial credentials table; added PageHeader (breadcrumb + JSON-LD), CtaBand, About, Services (anchored sections), Patient Guide (TOC, urgent signs, side-effect table, print-friendly), Blog list (client filter) and Blog `[slug]` (SSG, MedicalWebPage JSON-LD).
 - **Phase 4:** eyebrow rule removed site-wide; Appointment / Contact / Shop / Product pages; 3 Route Handlers with Nodemailer; shared zod validation; tested end-to-end against a local SMTP sink (valid, invalid, cross-origin, honeypot, spoofed file, rate limit).
 - **Phase 5:** SEO files, OG image, icon/manifest, loading/error boundaries, click-to-load map, hydration + font-warning fixes, axe 0 violations, Lighthouse ~88–92 mobile perf, deploy guide.
-- **B1:** Mongoose + 15 models, seed script, content service → DB with cache tags, forms save-then-email, private prescription storage, dynamic slugs. Next: **B2 Auth & RBAC** (+ hard 404 in proxy.js).
+- **B1:** Mongoose + 15 models, seed script, content service → DB with cache tags, forms save-then-email, private prescription storage, dynamic slugs.
+- **B2:** JWT auth + DB revocation, RBAC, proxy guard, login lockout, admin login/overview/account, create-admin CLI, hard 404 for slugs. Next: **B3 Media & uploads**.

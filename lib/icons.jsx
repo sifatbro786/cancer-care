@@ -13,7 +13,9 @@ import {
   Truck,
   Video,
   HandHeart,
+  LayoutDashboard,
   Ribbon,
+  UserRound,
 } from "lucide-react";
 
 /**
@@ -37,6 +39,9 @@ const iconMap = {
   video: Video,
   care: HandHeart,
   ribbon: Ribbon,
+  // admin
+  layout: LayoutDashboard,
+  user: UserRound,
 };
 
 export function getIcon(key) {

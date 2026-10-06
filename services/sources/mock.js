@@ -39,6 +39,7 @@ export const mockSource = {
 
   getSiteSettings: async () => siteConfig,
   getPageSeo: async (key) => seoData[key] ?? null,
+  getAllPageSeo: async () => [], // static seoData is already the base layer
 
   getImageSlots: async () => slotDefaults(), // no DB → every slot shows its Unsplash default
 };

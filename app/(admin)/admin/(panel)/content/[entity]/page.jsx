@@ -20,9 +20,9 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ContentEntityPage({ params, searchParams }) {
-  await requireUser(PERMISSIONS.contentWrite);
   const { entity } = await params;
   if (!isEntity(entity)) notFound();
+  await requireUser(cmsData.entities[entity].permission ?? PERMISSIONS.contentWrite);
 
   const cfg = cmsData.entities[entity];
   const C = cmsData.common;

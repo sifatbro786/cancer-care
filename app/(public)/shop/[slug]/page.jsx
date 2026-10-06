@@ -23,8 +23,8 @@ export async function generateMetadata({ params }) {
   const p = await getProductBySlug(slug);
   if (!p) return {};
   return buildMetadata(null, {
-    title: `${p.name} — ${p.generic}`,
-    description: p.description,
+    title: p.seo?.title || (p.generic ? `${p.name} — ${p.generic}` : p.name),
+    description: p.seo?.description || p.description,
     path: `/shop/${p.slug}`,
     image: p.image,
   });

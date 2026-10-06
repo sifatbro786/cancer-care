@@ -170,7 +170,7 @@ export default function EntityForm({ entity, id, version: loadedVersion, initial
           {dirty ? C.unsaved : ""}
         </p>
         <div className="flex flex-wrap gap-2">
-          {!isNew && !cfg.singleton ? (
+          {!isNew && !cfg.singleton && !cfg.noDelete ? (
             <button type="button" onClick={remove} disabled={pending} className={cn(smallBtn, "h-11 px-4 hover:text-alert-700 hover:ring-alert-600/40")}>
               <Trash aria-hidden="true" className="size-4" />
               {C.delete}

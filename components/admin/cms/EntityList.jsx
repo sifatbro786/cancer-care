@@ -54,10 +54,12 @@ export default function EntityList({ entity, list }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-3">
-        <Link href={`${base}/new`} className={`${toolbarLink} bg-brand-600 text-white ring-brand-600 hover:bg-brand-700`}>
-          <Plus aria-hidden="true" className="size-4" />
-          {C.newItem(cfg.noun)}
-        </Link>
+        {cfg.noCreate ? null : (
+          <Link href={`${base}/new`} className={`${toolbarLink} bg-brand-600 text-white ring-brand-600 hover:bg-brand-700`}>
+            <Plus aria-hidden="true" className="size-4" />
+            {C.newItem(cfg.noun)}
+          </Link>
+        )}
         {cfg.related ? (
           <Link href={cfg.related.href} className={`${toolbarLink} bg-white text-ink ring-line hover:ring-brand-300`}>
             <Tags aria-hidden="true" className="size-4" />

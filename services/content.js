@@ -6,6 +6,8 @@ import { readingTime } from "@/lib/utils";
 import { applySlots } from "@/lib/media/slots";
 import { mergeSite } from "@/lib/site";
 import { siteConfig } from "@/data/siteConfig";
+import { seoData } from "@/data/seoData";
+import { mergeSeo } from "@/lib/seo";
 import { mockSource } from "@/services/sources/mock";
 import { dbSource } from "@/services/sources/db";
 
@@ -54,6 +56,7 @@ const q = {
   faqs: cached("getFaqs", [TAGS.faqs]),
   siteSettings: cached("getSiteSettings", [TAGS.site]),
   pageSeo: cached("getPageSeo", [TAGS.seo]),
+  allPageSeo: cached("getAllPageSeo", [TAGS.seo]),
   imageSlots: cached("getImageSlots", [TAGS.media]),
 };
 
@@ -158,6 +161,20 @@ export async function getSiteConfig() {
   } catch (err) {
     console.error("[content] site settings unavailable, using defaults:", err?.message);
     return siteConfig;
+  }
+}
+
+/**
+ * SEO config for metadata: data/seoData.js overlaid with Admin → SEO (B6).
+ * Fails soft to the static values — metadata must never take a page down.
+ */
+export async function getSeoConfig() {
+  if (!useDb) return seoData;
+  try {
+    return mergeSeo(seoData, await q.allPageSeo());
+  } catch (err) {
+    console.error("[content] page SEO unavailable, using defaults:", err?.message);
+    return seoData;
   }
 }
 

@@ -1,11 +1,13 @@
 import { blogPageData } from "@/data/blogPageData";
 import { siteConfig } from "@/data/siteConfig";
 import { buildMetadata } from "@/lib/seo";
-import { getBlogCategories, getBlogs } from "@/services/content";
+import { getBlogCategories, getBlogs, getSeoConfig } from "@/services/content";
 import PageHeader from "@/components/layout/PageHeader";
 import BlogList from "@/components/blog/BlogList";
 
-export const metadata = buildMetadata("blog");
+export async function generateMetadata() {
+  return buildMetadata("blog", {}, await getSeoConfig());
+}
 
 export default async function BlogPage() {
   const [posts, categories] = await Promise.all([getBlogs(), getBlogCategories()]);

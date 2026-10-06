@@ -6,6 +6,7 @@ import {
   BlogPost,
   Doctor,
   Faq,
+  PageSeo,
   Product,
   ProductCategory,
   Service,
@@ -53,7 +54,10 @@ const managedRoots = (entity) =>
   new Set(cmsData.entities[entity].sections.flatMap((s) => s.fields).map((f) => f.name.split(".")[0]));
 
 /** Fields whose value is one object (image refs) — set/unset as a whole, never per leaf. */
-const ATOMIC = new Set(["photo", "image", "cover"]);
+const ATOMIC = new Set(["photo", "image", "cover", "ogImage"]);
+
+/** Human label of a record (audit log, messages). */
+export const labelOf = (d) => d?.title || d?.name || d?.label || d?.q || d?.key || "";
 
 const REGISTRY = {
   settings: { model: SiteSettings, singleton: { key: "site" }, tags: [TAGS.site] },
@@ -160,6 +164,23 @@ const REGISTRY = {
     }),
   },
 
+  "seo-default": { model: PageSeo, singleton: { key: "default" }, tags: [TAGS.seo] },
+
+  "seo-pages": {
+    model: PageSeo,
+    tags: [TAGS.seo],
+    // the "default" record has its own singleton editor
+    baseFilter: () => ({ key: trusted({ $ne: "default" }) }),
+    sort: { path: 1, key: 1 },
+    row: (d) => ({
+      title: cmsData.entities["seo-pages"].pageLabels[d.key] ?? d.key,
+      meta: [d.path, d.title || null].filter(Boolean).join(" · "),
+      thumb: d.ogImage?.src ?? null,
+      badges: d.noindex ? [{ label: B.noindex, tone: "alert" }] : [],
+      view: d.path || null,
+    }),
+  },
+
   faqs: {
     model: Faq,
     tags: [TAGS.faqs],
@@ -193,6 +214,7 @@ export async function listEntity(entity, { page = 1, q = "", tab } = {}) {
   const current = activeTab(entity, tab);
   const term = cfg.search ? String(q ?? "").trim().slice(0, 60) : "";
   const filter = {
+    ...(cfg.baseFilter?.() ?? {}),
     ...(current ? cfg.tabs[current](now) : {}),
     ...(term ? cfg.search(term) : {}),
   };
@@ -241,9 +263,10 @@ export async function getEditable(entity, id) {
   await connectDB();
   let doc = null;
   if (cfg.singleton) doc = await cfg.model.findOne(cfg.singleton).lean();
-  else if (isValidObjectId(id)) doc = await cfg.model.findById(id).lean();
+  else if (isValidObjectId(id)) doc = await cfg.model.findOne({ _id: id, ...(cfg.baseFilter?.() ?? {}) }).lean();
   if (!doc) return null;
-  return { id: String(doc._id), version: doc.updatedAt?.toISOString() ?? "", values: toFormValues(entity, doc) };
+  const label = cmsData.entities[entity].pageLabels?.[doc.key] ?? labelOf(doc);
+  return { id: String(doc._id), version: doc.updatedAt?.toISOString() ?? "", label, values: toFormValues(entity, doc) };
 }
 
 /** Options for <select> fields that come from other collections. */
@@ -326,6 +349,7 @@ export async function saveEntity(entity, id, version, data) {
   if (blocked) return blocked;
 
   const isNew = !cfg.singleton && !id;
+  if (isNew && cmsData.entities[entity].noCreate) return { ok: false, code: "notFound" };
   let doc;
   if (isNew) {
     doc = new cfg.model();
@@ -337,7 +361,7 @@ export async function saveEntity(entity, id, version, data) {
     doc = cfg.singleton
       ? await cfg.model.findOne(cfg.singleton)
       : isValidObjectId(id)
-        ? await cfg.model.findById(id)
+        ? await cfg.model.findOne({ _id: id, ...(cfg.baseFilter?.() ?? {}) })
         : null;
     if (!doc) return { ok: false, code: cfg.singleton ? "missing" : "notFound" };
     const seen = doc.updatedAt;
@@ -355,12 +379,12 @@ export async function saveEntity(entity, id, version, data) {
   } catch (err) {
     return mapWriteError(entity, err);
   }
-  return { ok: true, id: String(doc._id), version: doc.updatedAt?.toISOString() ?? "" };
+  return { ok: true, id: String(doc._id), version: doc.updatedAt?.toISOString() ?? "", label: labelOf(doc), created: isNew };
 }
 
 export async function deleteEntity(entity, id) {
   const cfg = REGISTRY[entity];
-  if (cfg.singleton || !isValidObjectId(id)) return { ok: false, code: "notFound" };
+  if (cfg.singleton || cmsData.entities[entity].noDelete || !isValidObjectId(id)) return { ok: false, code: "notFound" };
   await connectDB();
   const doc = await cfg.model.findById(id).lean();
   if (!doc) return { ok: false, code: "notFound" };
@@ -369,7 +393,7 @@ export async function deleteEntity(entity, id) {
     if (n) return { ok: false, code: "inUse", count: n, noun: cfg.usageNoun };
   }
   await cfg.model.deleteOne({ _id: doc._id });
-  return { ok: true };
+  return { ok: true, label: labelOf(doc) };
 }
 
 /**
@@ -403,8 +427,8 @@ export async function toggleEntity(entity, id) {
   const field = cmsData.entities[entity].toggle;
   if (!field || !isValidObjectId(id)) return { ok: false, code: "notFound" };
   await connectDB();
-  const doc = await cfg.model.findById(id).select(field).lean();
+  const doc = await cfg.model.findById(id).select(`${field} title name label q`).lean();
   if (!doc) return { ok: false, code: "notFound" };
   await cfg.model.updateOne({ _id: doc._id }, { $set: { [field]: !doc[field] } });
-  return { ok: true };
+  return { ok: true, label: labelOf(doc), field, value: !doc[field] };
 }

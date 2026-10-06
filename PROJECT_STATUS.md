@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-06 · Current phase: **B1–B5 done → B6 SEO manager & Super Admin next** (see 7-step plan below)_
+_Last updated: 2026-10-06 · Current phase: **B1–B6 done → B7 Hardening & handover next** (see 7-step plan below)_
 
 ---
 
@@ -16,7 +16,7 @@ _Last updated: 2026-10-06 · Current phase: **B1–B5 done → B6 SEO manager & 
 | 3 | Content pages: About, Services, Patient Guide, Blog list + `[slug]` | ✅ Done |
 | 4 | Interactive pages + email: Appointment, Contact, Shop + `[slug]` + Prescription upload, Nodemailer | ✅ Done |
 | 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ✅ Done |
-| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅ B3 ✅ B4 ✅ B5 ✅) |
+| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅ B3 ✅ B4 ✅ B5 ✅ B6 ✅) |
 
 ### Phase 4 — what was built
 - Pages: `/appointment` (type → day/slot → details, `?type=online` / `?service=` prefill), `/contact` (channels, form, map, hours), `/shop` (search, category filter, `?upload=1` opens upload), `/shop/[slug]` (SSG, Product JSON-LD)
@@ -53,7 +53,7 @@ Everything stays inside this Next.js app (Route Handlers + Server Actions + Mong
 | B3 | **Media & uploads** — public images → `/uploads` (sharp resize → webp), unlink old file on replace/delete; prescriptions stored **private** (outside public, served only to logged-in admins); media library; Unsplash placeholders replaced by uploaded images | ✅ |
 | B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ✅ |
 | B5 | **Content CMS** — CRUD for doctor profile, site settings (phone, hours, socials, map), services, products & categories, blog (block editor, draft/publish), testimonials (approve), FAQ (ordering); zod on every form; save → revalidate affected public pages | ✅ |
-| B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ⬜ |
+| B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ✅ |
 | B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ⬜ |
 
 New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.35 ✅ (now a direct dependency).
@@ -152,6 +152,24 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.
 - Care journey steps (SiteSettings.careJourney) are not editable yet.
 - Per-post / per-product SEO fields → B6.
 
+### B6 — what was built
+- **SEO from the admin:** `getSeoConfig()` (services/content.js, tag `page-seo`) = `data/seoData.js` overlaid with PageSeo records via `lib/seo.js#mergeSeo` (non-empty DB value wins, empty = code default, unknown keys ignored, `noindex` always from DB). Every static page now uses `generateMetadata` → `buildMetadata(key, {}, seo)`; root layout uses `buildRootMetadata(seo)` (title template, default description, keywords). Per-page: title, description, sharing image (OG/Twitter), **noindex** (→ `robots: { index: false }`). Fails soft to static values.
+- **Admin → Search & sharing** (`/admin/content/seo-pages`, `seo:write`): fixed list of routes (no create/delete — `noCreate`/`noDelete` flags in the CMS engine, enforced in the service too), plus **Search defaults** singleton (`seo-default`: home title, `%s` title pattern — validated, description, share headline, keywords, default share image).
+- **Per-article / per-medicine SEO:** "Search engines" section in the blog and medicine editors (`seo.title` ≤ 70, `seo.description` ≤ 170; `Product.seo` added). `/blog/[slug]` and `/shop/[slug]` metadata prefer them; public blog shape now keeps `seo`.
+- **CMS engine:** per-entity `permission` (SEO entities = `seo:write`, checked in pages and every action), `baseFilter` (seo-pages never exposes the `default` record), labels for headers.
+- **Admin → Users** (`/admin/users`, `users:manage` = super admin): add user (name, email, role) → **server-generated temporary password** (16 chars, no look-alikes, ~93 bits, crypto `randomInt`) shown once with copy; per user: change role, disable/enable, reset password (signs out everywhere, clears lockout), unlock. Rules enforced in `services/admin/users.js`: no self-changes from this screen; the **last active super admin** can't be disabled or demoted. Effects are immediate (role/active re-read every request; reset bumps `passwordChangedAt`).
+- **`mustChangePassword`** (User): set on create/reset, banner in the admin shell until the person changes it on Account (cleared there).
+- **Audit log** (`AuditLog` model, append-only, 400-day TTL; `lib/server/audit.js#audit()` never throws): sign-in ok / failed (invalid + locked only) / sign-out / own password change; content create/update/delete/reorder/toggle (incl. SEO, with changed field names); inbox status changes, prescription review, notes, **prescription file views/downloads**; media upload/delete/alt/slot changes; user create/enable/disable/role/reset/unlock. Actor name+email snapshotted, IP stored. No passwords, tokens or patient data in entries.
+- **Admin → Audit log** (`/admin/audit`, `audit:read`): group filters (sign-ins, content, inbox, media, users), search by person or item, 50/page.
+- Sidebar: Content group gains "Search & sharing"; new **Administration** group (Users, Audit log) visible to super admins only.
+- Verified here: esbuild parse of all 205 source files, named-import resolution across 209 files (0 missing), zod against all seed SEO data + negative cases, `mergeSeo`/`buildMetadata` behaviour (22/22), temp-password generator. **Still to run on the dev PC:** `npm run lint`, `next build`, browser E2E of B5 + B6.
+
+### B6 notes
+- Existing users get `mustChangePassword: false` by default — no migration needed. `npm run create-admin` still works for recovery.
+- "Last super admin" check and the update are two queries; two super admins demoting each other at the same instant could both pass. Acceptable for 2–3 staff; B7 can make it atomic.
+- Audit tabs show a count only for the active filter (counting every group on a large log costs a query each).
+- Email templates still use static contact details (from B5 notes).
+
 **Decided by the owner:**
 - ODM: **Mongoose**
 - **Appointments: no per-slot limit** — any number of requests per slot; the clinic calls each patient to confirm the final time (B4 builds the inbox around this: status New → Confirmed by phone).
@@ -198,4 +216,5 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **B2:** JWT auth + DB revocation, RBAC, proxy guard, login lockout, admin login/overview/account, create-admin CLI, hard 404 for slugs.
 - **B3:** image slots (Unsplash stays until replaced), sharp upload pipeline, /media serving, Admin → Media, private prescription download.
 - **B4:** appointments / orders / messages inbox with enforced workflows, Rx gate, optimistic concurrency, notes + history, search & pagination, badges, mobile menu, email deep links.
-- **B5:** config-driven content CMS (9 editors, block editor, media picker, reorder, approve), zod on every save, cache-tag revalidation, live site settings on the public site. Next: **B6 SEO manager & Super Admin**.
+- **B5:** config-driven content CMS (9 editors, block editor, media picker, reorder, approve), zod on every save, cache-tag revalidation, live site settings on the public site.
+- **B6:** admin-editable SEO (per page, defaults, per article/medicine, noindex, share images), user management with one-time temporary passwords and last-super-admin guard, append-only audit log + viewer. Next: **B7 Hardening & handover**.

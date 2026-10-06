@@ -6,6 +6,7 @@ import {
   getCareJourney,
   getDoctor,
   getFaqs,
+  getSeoConfig,
   getServices,
   getTestimonials,
   withSlots,
@@ -23,7 +24,9 @@ import HealthBlogSection from "@/components/home/HealthBlogSection";
 import FaqSection from "@/components/home/FaqSection";
 import FinalCta from "@/components/home/FinalCta";
 
-export const metadata = buildMetadata("home");
+export async function generateMetadata() {
+  return buildMetadata("home", {}, await getSeoConfig());
+}
 
 export default async function HomePage() {
   // Independent reads run in parallel — same pattern once these hit the database.

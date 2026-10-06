@@ -7,6 +7,7 @@ import { mediaData } from "@/data/admin/mediaData";
 import { LOGIN_PATH } from "@/lib/auth/config";
 import { PERMISSIONS } from "@/lib/auth/rbac";
 import { authorize } from "@/lib/auth/session";
+import { audit } from "@/lib/server/audit";
 import { TAGS } from "@/lib/cache/tags";
 import { expireContent } from "@/lib/cache/revalidate";
 import { SLOT_KEYS } from "@/lib/media/slots";
@@ -51,6 +52,7 @@ export async function updateAltAction(_prev, formData) {
   const res = await safely(() => updateMediaAlt(parsed.data.id, parsed.data.alt));
   if (!res.ok) return fail(res.code);
   if (res.slotsChanged) expireContent(TAGS.media);
+  await audit({ action: "media.alt", user: auth.user, target: { type: "media", id: parsed.data.id } });
   refresh();
   return { ok: true, at: Date.now() };
 }
@@ -64,6 +66,7 @@ export async function deleteMediaAction(_prev, formData) {
   const res = await safely(() => deleteMedia(id.data));
   if (!res.ok) return fail(res.code, res.usedBy?.join(", "));
   if (res.slotsReset.length) expireContent(TAGS.media);
+  await audit({ action: "media.delete", user: auth.user, target: { type: "media", id: id.data }, meta: res.slotsReset.length ? { slotsReset: res.slotsReset } : undefined });
   refresh();
   return { ok: true, message: mediaData.library.deleted };
 }
@@ -79,6 +82,7 @@ export async function setSlotAction(_prev, formData) {
   const res = await safely(() => setSlotImage(parsed.data.key, parsed.data.mediaId));
   if (!res.ok) return fail(res.code);
   expireContent(TAGS.media);
+  await audit({ action: "media.slot_set", user: auth.user, target: { type: "slot", id: parsed.data.mediaId, label: parsed.data.key } });
   refresh();
   return { ok: true };
 }
@@ -92,6 +96,7 @@ export async function resetSlotAction(_prev, formData) {
   const res = await safely(() => resetSlotImage(key.data));
   if (!res.ok) return fail(res.code);
   expireContent(TAGS.media);
+  await audit({ action: "media.slot_reset", user: auth.user, target: { type: "slot", label: key.data } });
   refresh();
   return { ok: true };
 }

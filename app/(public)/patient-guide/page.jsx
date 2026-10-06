@@ -1,13 +1,15 @@
 import { CircleCheck, Phone, TriangleAlert } from "lucide-react";
 import { patientGuideData } from "@/data/patientGuideData";
-import { getSiteConfig, withSlots } from "@/services/content";
+import { getSeoConfig, getSiteConfig, withSlots } from "@/services/content";
 import { buildMetadata } from "@/lib/seo";
 import PageHeader from "@/components/layout/PageHeader";
 import SmartImage from "@/components/ui/SmartImage";
 import Button from "@/components/ui/Button";
 import CtaBand from "@/components/sections/CtaBand";
 
-export const metadata = buildMetadata("patientGuide");
+export async function generateMetadata() {
+  return buildMetadata("patientGuide", {}, await getSeoConfig());
+}
 
 function Checklist({ items }) {
   return (

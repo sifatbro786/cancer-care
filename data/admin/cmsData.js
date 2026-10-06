@@ -103,6 +103,7 @@ export const cmsData = {
     featured: "Featured",
     outOfStock: "Out of stock",
     rx: "Rx",
+    noindex: "Hidden from search",
   },
 
   toggles: {
@@ -121,6 +122,7 @@ export const cmsData = {
     required: "This field is required.",
     tooLong: (n) => `Keep it under ${n} characters.`,
     tooMany: (n) => `Up to ${n} items.`,
+    template: "Must contain %s (where the page title goes).",
     slug: "Use lowercase letters, numbers and single dashes (e.g. day-care-chemotherapy).",
     url: "Enter a full https:// link.",
     mapEmbed: "Paste the src link from Google Maps → Share → Embed a map.",
@@ -397,6 +399,14 @@ export const cmsData = {
             { name: "description", type: "textarea", label: "Description", max: 2000, width: "full", rows: 5 },
           ],
         },
+        {
+          title: "Search engines",
+          description: "Optional. Leave empty to use the medicine name and summary.",
+          fields: [
+            { name: "seo.title", type: "text", label: "Search title", max: 70, width: "full", hint: "Google shows about 60 characters." },
+            { name: "seo.description", type: "textarea", label: "Search description", max: 170, width: "full", hint: "About 150–160 characters." },
+          ],
+        },
       ],
     },
 
@@ -467,6 +477,14 @@ export const cmsData = {
           ],
         },
         { title: "Content", fields: [{ name: "content", type: "blocks", label: "Article body", width: "full" }] },
+        {
+          title: "Search engines",
+          description: "Optional. Leave empty to use the article title and summary.",
+          fields: [
+            { name: "seo.title", type: "text", label: "Search title", max: 70, width: "full", hint: "Google shows about 60 characters." },
+            { name: "seo.description", type: "textarea", label: "Search description", max: 170, width: "full", hint: "About 150–160 characters." },
+          ],
+        },
       ],
     },
 
@@ -530,6 +548,61 @@ export const cmsData = {
               ],
             },
             { name: "approved", type: "checkbox", label: "Approved — show on the website" },
+          ],
+        },
+      ],
+    },
+
+    "seo-pages": {
+      noun: "page",
+      title: "Search & sharing",
+      highlight: "sharing",
+      intro: "How each page appears on Google and when shared on Facebook/WhatsApp. Empty fields use the text built into the site.",
+      permission: "seo:write",
+      noCreate: true,
+      noDelete: true,
+      related: { href: "/admin/content/seo-default", label: "Site-wide defaults" },
+      pageLabels: {
+        home: "Home",
+        about: "About the doctor",
+        services: "Services",
+        appointment: "Appointment",
+        shop: "Medicine shop",
+        blog: "Blog",
+        patientGuide: "Patient guide",
+        contact: "Contact",
+      },
+      sections: [
+        {
+          title: "Search result",
+          fields: [
+            { name: "title", type: "text", label: "Page title", max: 120, width: "full", hint: "Shown as “Title | Cancer Care & Medical Services”. Empty = default." },
+            { name: "description", type: "textarea", label: "Description", max: 300, width: "full", hint: "About 150–160 characters work best." },
+            { name: "noindex", type: "checkbox", label: "Hide this page from search engines" },
+          ],
+        },
+        { title: "Sharing image", fields: [{ name: "ogImage", type: "image", label: "Image for Facebook / WhatsApp previews", width: "full" }] },
+      ],
+    },
+
+    "seo-default": {
+      singleton: true,
+      noun: "defaults",
+      title: "Search defaults",
+      highlight: "defaults",
+      intro: "Site-wide fallback used by every page that has no text of its own.",
+      permission: "seo:write",
+      parent: { href: "/admin/content/seo-pages", label: "Search & sharing" },
+      sections: [
+        {
+          title: "Defaults",
+          fields: [
+            { name: "title", type: "text", label: "Home & fallback title", required: true, max: 120, width: "full" },
+            { name: "titleTemplate", type: "text", label: "Title pattern", required: true, max: 120, width: "full", hint: "%s is replaced by the page title." },
+            { name: "description", type: "textarea", label: "Default description", required: true, max: 300, width: "full" },
+            { name: "ogHeadline", type: "text", label: "Share-image headline", max: 160, width: "full" },
+            { name: "keywords", type: "lines", label: "Keywords", width: "full" },
+            { name: "ogImage", type: "image", label: "Default sharing image", width: "full", hint: "Empty = the generated card with the clinic name." },
           ],
         },
       ],

@@ -21,9 +21,9 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ContentItemPage({ params, searchParams }) {
-  await requireUser(PERMISSIONS.contentWrite);
   const { entity, id } = await params;
   if (!isEntity(entity) || cmsData.entities[entity].singleton) notFound();
+  await requireUser(cmsData.entities[entity].permission ?? PERMISSIONS.contentWrite);
 
   const cfg = cmsData.entities[entity];
   const C = cmsData.common;
@@ -39,6 +39,7 @@ export default async function ContentItemPage({ params, searchParams }) {
   }
 
   const isNew = id === "new";
+  if (isNew && cfg.noCreate) notFound();
   const [item, options] = await Promise.all([isNew ? null : getEditable(entity, id), getFieldOptions(entity)]);
   if (!isNew && !item) notFound();
 
@@ -52,7 +53,7 @@ export default async function ContentItemPage({ params, searchParams }) {
       <BackLink href={back} />
       <AdminPageHeader
         eyebrow={cfg.title}
-        title={isNew ? C.newItem(cfg.noun) : titleOf(values, cfg.noun)}
+        title={isNew ? C.newItem(cfg.noun) : item.label || titleOf(values, cfg.noun)}
         description={
           view ? (
             <a href={view} target="_blank" rel="noopener" className="font-semibold text-brand-700 hover:text-brand-900">

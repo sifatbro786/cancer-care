@@ -24,6 +24,9 @@ import {
   Newspaper,
   Package,
   Tags,
+  Search,
+  Users,
+  ScrollText,
 } from "lucide-react";
 
 /**
@@ -58,6 +61,9 @@ const iconMap = {
   newspaper: Newspaper,
   package: Package,
   tags: Tags,
+  search: Search,
+  users: Users,
+  history: ScrollText,
 };
 
 /** Keys an admin can pick for a service card (public-facing icons only). */

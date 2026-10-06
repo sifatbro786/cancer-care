@@ -4,6 +4,8 @@ import { withAdmin } from "@/lib/auth/session";
 import { connectDB } from "@/lib/db/connect";
 import { Order } from "@/lib/db/models";
 import { readPrivateFile } from "@/lib/server/storage";
+import { audit } from "@/lib/server/audit";
+import { getClientIp } from "@/lib/server/request";
 
 const EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" };
 const notFound = () => new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
@@ -28,6 +30,13 @@ export const GET = withAdmin(PERMISSIONS.inboxRead, async (request, { params }, 
   const download = new URL(request.url).searchParams.get("download") === "1";
   const filename = `prescription-${order.reference}.${EXT[file.mime] ?? "bin"}`;
   console.info(`[prescription] ${order.reference} viewed by user ${user.id}`);
+  await audit({
+    action: "inbox.prescription_view",
+    user,
+    target: { type: "order", id: orderId, label: order.reference },
+    meta: { download },
+    ip: getClientIp(request),
+  });
 
   const headers = {
     "Content-Type": EXT[file.mime] ? file.mime : "application/octet-stream",

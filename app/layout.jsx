@@ -1,6 +1,7 @@
 import { Atkinson_Hyperlegible_Next, Newsreader, Onest } from "next/font/google";
 import "./globals.css";
-import { rootMetadata } from "@/lib/seo";
+import { buildRootMetadata } from "@/lib/seo";
+import { getSeoConfig } from "@/services/content";
 import MotionProvider from "@/components/providers/MotionProvider";
 
 /* Body: Atkinson Hyperlegible — designed for low-vision readers (elderly patients). */
@@ -30,7 +31,9 @@ const accent = Newsreader({
   display: "swap",
 });
 
-export const metadata = rootMetadata;
+export async function generateMetadata() {
+  return buildRootMetadata(await getSeoConfig());
+}
 
 export const viewport = {
   themeColor: "#0e6e66",

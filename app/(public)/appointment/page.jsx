@@ -3,13 +3,15 @@ import { Phone } from "lucide-react";
 import { appointmentData } from "@/data/appointmentData";
 import { whatsappLink } from "@/lib/site";
 import { buildMetadata } from "@/lib/seo";
-import { getServices, getSiteConfig } from "@/services/content";
+import { getSeoConfig, getServices, getSiteConfig } from "@/services/content";
 import PageHeader from "@/components/layout/PageHeader";
 import AppointmentForm from "@/components/appointment/AppointmentForm";
 import Button from "@/components/ui/Button";
 import { WhatsappIcon } from "@/components/icons/BrandIcons";
 
-export const metadata = buildMetadata("appointment");
+export async function generateMetadata() {
+  return buildMetadata("appointment", {}, await getSeoConfig());
+}
 
 export default async function AppointmentPage() {
   const siteConfig = await getSiteConfig();

@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { authData } from "@/data/admin/authData";
 import { LOGIN_PATH, safeAdminPath } from "@/lib/auth/config";
-import { authorize, createSession, deleteSession } from "@/lib/auth/session";
+import { authorize, createSession, deleteSession, getCurrentUser } from "@/lib/auth/session";
+import { audit } from "@/lib/server/audit";
 import { changePasswordSchema, loginSchema } from "@/lib/validation/auth";
 import { getClientIp } from "@/lib/server/request";
 import { attemptLogin, changePassword } from "@/services/auth";
@@ -32,6 +33,10 @@ export async function loginAction(_prev, formData) {
   }
 
   if (!result.ok) {
+    // Only real credential failures are logged (rate-limit/config hits would just be noise)
+    if (result.code === "invalid" || result.code === "locked") {
+      await audit({ action: "auth.login_failed", user: { email: parsed.data.email }, meta: { reason: result.code } });
+    }
     const message =
       result.code === "locked" ? E.locked(result.minutes)
       : result.code === "rateLimited" ? E.rateLimited
@@ -41,10 +46,13 @@ export async function loginAction(_prev, formData) {
   }
 
   await createSession(result.user);
+  await audit({ action: "auth.login", user: { id: result.user.id, email: parsed.data.email } });
   redirect(safeAdminPath(formData.get("next"))); // throws — must stay outside try/catch
 }
 
 export async function logoutAction() {
+  const user = await getCurrentUser();
+  if (user) await audit({ action: "auth.logout", user });
   await deleteSession();
   redirect(LOGIN_PATH);
 }
@@ -76,5 +84,6 @@ export async function changePasswordAction(_prev, formData) {
 
   // Older tokens are now invalid (passwordChangedAt) — re-issue one for THIS device
   await createSession(auth.user);
+  await audit({ action: "auth.password_change", user: auth.user });
   return { ok: true, message: authData.account.success };
 }

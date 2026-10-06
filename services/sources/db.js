@@ -28,7 +28,7 @@ const PUBLIC_FIELDS = "-createdAt -__v";
 const clean = ({ active: _a, order: _o, key: _k, createdAt: _c, ...rest }) => rest;
 
 const blogShape = (p) => {
-  const { status: _s, seo: _seo, createdAt: _c, ...post } = toPlain(p);
+  const { status: _s, createdAt: _c, ...post } = toPlain(p); // `seo` kept → generateMetadata
   return { ...post, publishedAt: toDhakaDay(p.publishedAt), updatedAt: p.updatedAt?.toISOString() };
 };
 
@@ -160,7 +160,13 @@ export const dbSource = {
     return slots;
   },
 
-  /** Wired into lib/seo.js in B6. */
+  /** Every PageSeo record (≈10) — one cached read feeds lib/seo.js#mergeSeo. */
+  async getAllPageSeo() {
+    await db();
+    const list = await PageSeo.find().select("-_id -createdAt -updatedAt -__v").lean();
+    return list.map((r) => toPlain(r));
+  },
+
   async getPageSeo(key) {
     await db();
     const s = await PageSeo.findOne({ key: String(key) }).select(PUBLIC_FIELDS).lean();

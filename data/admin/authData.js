@@ -65,6 +65,16 @@ export const authData = {
       { label: "FAQ", href: "/admin/content/faqs", icon: "help", permission: "content:write", group: "Content" },
       { label: "Media", href: "/admin/media", icon: "image", permission: "content:write", group: "Content" },
       { label: "Site settings", href: "/admin/content/settings", icon: "settings", permission: "content:write", group: "Content" },
+      {
+        label: "Search & sharing",
+        href: "/admin/content/seo-pages",
+        icon: "search",
+        permission: "seo:write",
+        group: "Content",
+        match: ["/admin/content/seo-default"],
+      },
+      { label: "Users", href: "/admin/users", icon: "users", permission: "users:manage", group: "Administration" },
+      { label: "Audit log", href: "/admin/audit", icon: "history", permission: "audit:read", group: "Administration" },
       { label: "Account", href: "/admin/account", icon: "user", group: "You" },
     ],
     viewSite: "View website",
@@ -73,6 +83,8 @@ export const authData = {
     badge: (n) => `${n} waiting`,
     close: "Close menu",
     navLabel: "Admin navigation",
+    mustChange: "You're using a temporary password.",
+    mustChangeLink: "Choose your own now",
   },
 
   overview: {

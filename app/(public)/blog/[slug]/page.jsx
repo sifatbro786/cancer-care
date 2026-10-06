@@ -26,8 +26,8 @@ export async function generateMetadata({ params }) {
   const post = await getBlogBySlug(slug);
   if (!post) return {};
   return buildMetadata(null, {
-    title: post.title,
-    description: post.excerpt,
+    title: post.seo?.title || post.title,
+    description: post.seo?.description || post.excerpt,
     path: `/blog/${post.slug}`,
     image: post.cover,
     type: "article",

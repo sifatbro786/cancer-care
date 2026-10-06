@@ -57,6 +57,7 @@ export default function RowActions({ entity, id, title, toggle, canMove, isFirst
             <span className="sr-only">: {title}</span>
           </button>
         ) : null}
+        {cfg.noDelete ? null : (
         <button
           type="button"
           aria-label={`${C.delete}: ${title}`}
@@ -68,6 +69,7 @@ export default function RowActions({ entity, id, title, toggle, canMove, isFirst
         >
           <Trash aria-hidden="true" className="size-4" />
         </button>
+        )}
       </div>
       {error ? (
         <p role="alert" className="max-w-xs text-right text-sm font-medium text-alert-700">

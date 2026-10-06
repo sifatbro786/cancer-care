@@ -2,14 +2,16 @@ import { aboutData } from "@/data/aboutData";
 import { formatNumber } from "@/lib/utils";
 import { siteConfig } from "@/data/siteConfig";
 import { buildMetadata } from "@/lib/seo";
-import { getDoctor, withSlots } from "@/services/content";
+import { getDoctor, getSeoConfig, withSlots } from "@/services/content";
 import PageHeader from "@/components/layout/PageHeader";
 import SectionHeading from "@/components/ui/SectionHeading";
 import SmartImage from "@/components/ui/SmartImage";
 import Reveal from "@/components/motion/Reveal";
 import CtaBand from "@/components/sections/CtaBand";
 
-export const metadata = buildMetadata("about");
+export async function generateMetadata() {
+  return buildMetadata("about", {}, await getSeoConfig());
+}
 
 export default async function AboutPage() {
   const [doctor, about] = await Promise.all([getDoctor(), withSlots(aboutData)]);

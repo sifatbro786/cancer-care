@@ -91,7 +91,17 @@ export default function AdminShell({ user, badges, children }) {
       </aside>
 
       <main id="main" tabIndex={-1} className="flex-1 px-4 py-8 outline-none sm:px-8 lg:px-12 lg:py-12">
-        <div className="mx-auto max-w-5xl">{children}</div>
+        <div className="mx-auto max-w-5xl">
+          {user.mustChangePassword ? (
+            <p role="status" className="mb-8 rounded-xl bg-mist px-4 py-3 text-[0.95rem] text-brand-900 ring-1 ring-brand-200">
+              {S.mustChange}{" "}
+              <Link href="/admin/account" className="font-semibold underline underline-offset-4 hover:text-brand-700">
+                {S.mustChangeLink}
+              </Link>
+            </p>
+          ) : null}
+          {children}
+        </div>
       </main>
     </div>
   );

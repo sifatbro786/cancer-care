@@ -10,6 +10,7 @@ import { expireContent } from "@/lib/cache/revalidate";
 import { parseEntity } from "@/lib/validation/cms";
 import { deleteEntity, entityTags, isEntity, moveEntity, saveEntity, toggleEntity } from "@/services/admin/cms";
 import { listMedia } from "@/services/admin/media";
+import { audit } from "@/lib/server/audit";
 
 /**
  * Content CMS Server Actions (B5).
@@ -22,10 +23,14 @@ import { listMedia } from "@/services/admin/media";
 const E = cmsData.errors;
 const ID_RE = /^[a-f0-9]{24}$/;
 
-async function guard() {
-  const auth = await authorize(PERMISSIONS.contentWrite);
+/** Content entities need content:write; SEO entities declare seo:write in cmsData. */
+const permissionFor = (entity) => cmsData.entities[entity]?.permission ?? PERMISSIONS.contentWrite;
+
+/** @returns the signed-in user when allowed, else null (401 → login page). */
+async function guard(entity) {
+  const auth = await authorize(entity ? permissionFor(entity) : PERMISSIONS.contentWrite);
   if (auth.status === 401) redirect(`${LOGIN_PATH}?reason=expired`);
-  return auth.ok;
+  return auth.ok ? auth.user : null;
 }
 
 /** DB/IO errors become a friendly message instead of the error page. */
@@ -62,7 +67,9 @@ const validId = (id) => typeof id === "string" && ID_RE.test(id);
  * @returns {{ ok: true, id, version } | { ok: false, message, fieldErrors?, conflict? }}
  */
 export async function saveEntityAction(entity, id, version, values) {
-  if (!(await guard()) || !isEntity(entity)) return failure({ code: "server" });
+  if (!isEntity(entity)) return failure({ code: "server" });
+  const user = await guard(entity);
+  if (!user) return failure({ code: "server" });
   if (id !== null && !validId(id)) return failure({ code: "notFound" });
 
   const singleton = Boolean(cmsData.entities[entity].singleton);
@@ -73,35 +80,52 @@ export async function saveEntityAction(entity, id, version, values) {
   const res = await safely(() => saveEntity(entity, isNew ? null : id, typeof version === "string" ? version : "", parsed.data));
   if (!res.ok) return failure(res);
   expireContent(...entityTags(entity));
+  await audit({
+    action: res.created ? "content.create" : "content.update",
+    user,
+    target: { type: entity, id: res.id, label: res.label },
+    meta: { fields: Object.keys(parsed.data) },
+  });
   return { ok: true, id: res.id, version: res.version };
 }
 
 export async function deleteEntityAction(entity, id) {
-  if (!(await guard()) || !isEntity(entity)) return failure({ code: "server" });
+  if (!isEntity(entity)) return failure({ code: "server" });
+  const user = await guard(entity);
+  if (!user) return failure({ code: "server" });
   if (!validId(id)) return failure({ code: "notFound" });
   const res = await safely(() => deleteEntity(entity, id));
   if (!res.ok) return failure(res);
   expireContent(...entityTags(entity));
+  await audit({ action: "content.delete", user, target: { type: entity, id, label: res.label } });
   refresh();
   return { ok: true };
 }
 
 export async function moveEntityAction(entity, id, dir, tab) {
-  if (!(await guard()) || !isEntity(entity)) return failure({ code: "server" });
+  if (!isEntity(entity)) return failure({ code: "server" });
+  const user = await guard(entity);
+  if (!user) return failure({ code: "server" });
   if (!validId(id)) return failure({ code: "notFound" });
   const res = await safely(() => moveEntity(entity, id, dir === -1 ? -1 : 1, typeof tab === "string" ? tab : undefined));
   if (!res.ok) return failure(res);
-  if (res.changed) expireContent(...entityTags(entity));
+  if (res.changed) {
+    expireContent(...entityTags(entity));
+    await audit({ action: "content.reorder", user, target: { type: entity, id }, meta: { dir: dir === -1 ? "up" : "down" } });
+  }
   refresh();
   return { ok: true };
 }
 
 export async function toggleEntityAction(entity, id) {
-  if (!(await guard()) || !isEntity(entity)) return failure({ code: "server" });
+  if (!isEntity(entity)) return failure({ code: "server" });
+  const user = await guard(entity);
+  if (!user) return failure({ code: "server" });
   if (!validId(id)) return failure({ code: "notFound" });
   const res = await safely(() => toggleEntity(entity, id));
   if (!res.ok) return failure(res);
   expireContent(...entityTags(entity));
+  await audit({ action: "content.toggle", user, target: { type: entity, id, label: res.label }, meta: { [res.field]: res.value } });
   refresh();
   return { ok: true };
 }

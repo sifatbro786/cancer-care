@@ -5,7 +5,7 @@ import { siteConfig } from "@/data/siteConfig";
 import { buildMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { IconByKey } from "@/lib/icons";
-import { getCareJourney, getServices } from "@/services/content";
+import { getCareJourney, getSeoConfig, getServices } from "@/services/content";
 import PageHeader from "@/components/layout/PageHeader";
 import SmartImage from "@/components/ui/SmartImage";
 import Button from "@/components/ui/Button";
@@ -13,7 +13,9 @@ import Reveal from "@/components/motion/Reveal";
 import CareJourney from "@/components/home/CareJourney";
 import CtaBand from "@/components/sections/CtaBand";
 
-export const metadata = buildMetadata("services");
+export async function generateMetadata() {
+  return buildMetadata("services", {}, await getSeoConfig());
+}
 
 function DetailList({ title, items }) {
   if (!items?.length) return null;

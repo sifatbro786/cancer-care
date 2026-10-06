@@ -2,11 +2,13 @@ import { Suspense } from "react";
 import { shopData } from "@/data/shopData";
 import { siteConfig } from "@/data/siteConfig";
 import { buildMetadata } from "@/lib/seo";
-import { getProductCategories, getProducts } from "@/services/content";
+import { getProductCategories, getProducts, getSeoConfig } from "@/services/content";
 import PageHeader from "@/components/layout/PageHeader";
 import ShopCatalog from "@/components/shop/ShopCatalog";
 
-export const metadata = buildMetadata("shop");
+export async function generateMetadata() {
+  return buildMetadata("shop", {}, await getSeoConfig());
+}
 
 export default async function ShopPage() {
   const [products, categories] = await Promise.all([getProducts(), getProductCategories()]);

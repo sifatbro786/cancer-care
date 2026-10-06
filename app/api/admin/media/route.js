@@ -2,9 +2,10 @@ import { PERMISSIONS } from "@/lib/auth/rbac";
 import { withAdmin } from "@/lib/auth/session";
 import { MEDIA_MAX_BYTES } from "@/lib/server/media";
 import { rateLimit } from "@/lib/server/rateLimit";
-import { isSameOrigin } from "@/lib/server/request";
+import { getClientIp, isSameOrigin } from "@/lib/server/request";
 import { mediaData } from "@/data/admin/mediaData";
 import { createMedia } from "@/services/admin/media";
+import { audit } from "@/lib/server/audit";
 
 const E = mediaData.errors;
 const json = (body, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -37,6 +38,12 @@ export const POST = withAdmin(PERMISSIONS.contentWrite, async (request, _ctx, us
   try {
     const result = await createMedia({ file: form.get("file"), alt, userId: user.id });
     if (!result.ok) return json({ ok: false, message: E[result.code] ?? E.server }, result.code === "tooLarge" ? 413 : 422);
+    await audit({
+      action: "media.upload",
+      user,
+      target: { type: "media", id: result.item.id, label: result.item.originalName || result.item.url },
+      ip: getClientIp(request),
+    });
     return json({ ok: true, item: result.item }, 201);
   } catch (err) {
     console.error("[media] upload failed:", err?.message);

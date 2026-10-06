@@ -81,7 +81,7 @@ export async function changePassword({ userId, current, next }) {
 
   await User.updateOne(
     { _id: user._id },
-    { $set: { passwordHash: await hashPassword(next), passwordChangedAt: new Date() } }
+    { $set: { passwordHash: await hashPassword(next), passwordChangedAt: new Date(), mustChangePassword: false } }
   );
   console.info(`[auth] password changed (user ${user._id})`);
   return { ok: true };

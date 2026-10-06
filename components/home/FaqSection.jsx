@@ -1,5 +1,6 @@
 import { Phone, Plus } from "lucide-react";
-import { siteConfig, whatsappHref } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
+import { whatsappLink } from "@/lib/site";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Button from "@/components/ui/Button";
 import Reveal from "@/components/motion/Reveal";
@@ -10,7 +11,9 @@ import { WhatsappIcon } from "@/components/icons/BrandIcons";
  * zero JS, keyboard & screen-reader accessible, works before hydration,
  * and content stays in the HTML for search engines.
  */
-export default function FaqSection({ data, faqs }) {
+export default async function FaqSection({ data, faqs }) {
+  const siteConfig = await getSiteConfig();
+  const whatsappHref = whatsappLink(siteConfig.contact);
   const { eyebrow, title, highlight, description } = data;
 
   return (

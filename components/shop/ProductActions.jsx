@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { shopData } from "@/data/shopData";
-import { whatsappHref } from "@/data/siteConfig";
+import { whatsappLink } from "@/lib/site";
+import { useSite } from "@/components/providers/SiteProvider";
 import Button from "@/components/ui/Button";
 import PrescriptionUploadModal from "@/components/shop/PrescriptionUploadModal";
 import { WhatsappIcon } from "@/components/icons/BrandIcons";
@@ -11,6 +12,7 @@ import { WhatsappIcon } from "@/components/icons/BrandIcons";
 export default function ProductActions({ product }) {
   const [open, setOpen] = useState(false);
   const C = shopData.card;
+  const whatsappHref = whatsappLink(useSite().contact);
 
   return (
     <div className="flex flex-wrap gap-3">

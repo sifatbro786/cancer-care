@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-06 · Current phase: **B1–B4 done → B5 Content CMS next** (see 7-step plan below)_
+_Last updated: 2026-10-06 · Current phase: **B1–B5 done → B6 SEO manager & Super Admin next** (see 7-step plan below)_
 
 ---
 
@@ -16,7 +16,7 @@ _Last updated: 2026-10-06 · Current phase: **B1–B4 done → B5 Content CMS ne
 | 3 | Content pages: About, Services, Patient Guide, Blog list + `[slug]` | ✅ Done |
 | 4 | Interactive pages + email: Appointment, Contact, Shop + `[slug]` + Prescription upload, Nodemailer | ✅ Done |
 | 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ✅ Done |
-| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅ B3 ✅ B4 ✅) |
+| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅ B3 ✅ B4 ✅ B5 ✅) |
 
 ### Phase 4 — what was built
 - Pages: `/appointment` (type → day/slot → details, `?type=online` / `?service=` prefill), `/contact` (channels, form, map, hours), `/shop` (search, category filter, `?upload=1` opens upload), `/shop/[slug]` (SSG, Product JSON-LD)
@@ -52,7 +52,7 @@ Everything stays inside this Next.js app (Route Handlers + Server Actions + Mong
 | B2 | **Auth & RBAC** — `/admin/login`, bcryptjs hashes, JWT (`jose`) in httpOnly secure cookie; roles `super_admin` / `admin`; `proxy.js` guard **plus** role check inside every Server Action / API; login rate limit + temporary lockout; logout, change password; script to create the first super admin | ✅ |
 | B3 | **Media & uploads** — public images → `/uploads` (sharp resize → webp), unlink old file on replace/delete; prescriptions stored **private** (outside public, served only to logged-in admins); media library; Unsplash placeholders replaced by uploaded images | ✅ |
 | B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ✅ |
-| B5 | **Content CMS** — CRUD for doctor profile, site settings (phone, hours, socials, map), services, products & categories, blog (block editor, draft/publish), testimonials (approve), FAQ (ordering); zod on every form; save → revalidate affected public pages | ⬜ |
+| B5 | **Content CMS** — CRUD for doctor profile, site settings (phone, hours, socials, map), services, products & categories, blog (block editor, draft/publish), testimonials (approve), FAQ (ordering); zod on every form; save → revalidate affected public pages | ✅ |
 | B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ⬜ |
 | B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ⬜ |
 
@@ -132,6 +132,26 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.
 - Status changes don't message the patient — the clinic calls (owner decision). SMS/WhatsApp notifications could be added later.
 - Messages have no notes field (replies happen by phone/email); easy to add if the clinic wants it.
 
+### B5 — what was built
+- **One generic editor, config-driven:** `data/admin/cmsData.js` holds copy + form structure for 9 entities (site settings, doctor, services, medicines, medicine categories, blog, blog categories, testimonials, FAQ). Field types: text/email/url/textarea/number/checkbox/select/date/slug/lines/paragraphs/image/repeater/blocks. Adding a field = one line there + one line in the zod schema.
+- **Routes:** `/admin/content/[entity]` (list, or the editor itself for singletons settings/doctor) and `/admin/content/[entity]/[id|new]`. Unknown entity → admin 404. Sidebar has a **Content** group (`AdminNavList`, `match` prefixes keep "Medicines"/"Blog" active on their category pages).
+- **Validation:** `lib/validation/cms.js` (zod) parses every Server Action payload: control chars stripped, limits = model limits, slugs format-checked, money integer, MRP ≥ price, social/map links https-only, **map embed restricted to Google Maps** (iframe src), image `src` only `/media/YYYY/MM/<uuid>.webp` or the whitelisted stock hosts, operator objects rejected. All existing `data/*.js` content passes (36/36 checked).
+- **Locked keys:** service slug and category keys are fixed after creation (`lockOnEdit` — dropped from the schema on edit, so whatever the client sends is ignored). Product/blog slugs stay editable with a warning.
+- **DAL** `services/admin/cms.js`: optimistic concurrency on `updatedAt` (`doc.$where` → conditional write; stale tab = "someone else saved"); leaf-by-leaf `doc.set` so fields not on the form (address.country, careJourney, imageOverrides) are never touched; duplicate keys → field error; category delete refused while medicines/articles use it; reorder (↑/↓) renumbers densely and respects the current tab; quick show/hide & approve from the list.
+- **Actions** `app/(admin)/_actions/cms.js`: each authorizes `content:write`, validates the entity key + ObjectId, parses with zod, then `expireContent(tags)` for the pages that show that content (settings → `site-settings`, categories → their list + products/blog, etc.).
+- **Editor UX:** sticky save bar, unsaved-changes warning, slug follows the title until edited, repeaters (hours, socials, training, affiliations, stats) with reorder, media-library picker for images (+ alt text per use), blog **block editor** (paragraph / heading / list / note box, reorder) — same blocks `ArticleBody` renders, no HTML stored.
+- **Blog publishing:** draft / published; empty date = now, future date = scheduled (Scheduled tab). Testimonials open on the **Waiting** tab (moderation).
+- **Site settings are now live on the public site:** `getSiteConfig()` (services/content.js) = `data/siteConfig.js` (nav, CTAs, brand, URL stay in code) overlaid with DB settings via `lib/site.js#mergeSite` (empty DB values never blank a default; tel:/mailto: hrefs always derived). Server components read it directly; client components (Navbar, MobileNav, ProductActions, error boundary) via `SiteProvider`/`useSite()` from the public layout. Fails soft to the static config if the DB is down. Clinic + physician JSON-LD moved to the public layout and use live settings + DB doctor.
+- `lib/db/connect.js`: optional `MONGODB_DNS_SERVERS` override (dev machines whose router refuses SRV lookups). `.env` on the new dev PC uses the direct (non-SRV) Atlas seed list instead.
+
+### B5 notes
+- Verified here: esbuild syntax on all 49 touched files, named-import resolution, zod against all seed data + hostile payloads. **Not yet run:** `npm run lint`, `next build`, browser E2E (the dev VM was unavailable) — run these on the dev PC before B6.
+- Navigation dropdown / footer service links are still code (`data/siteConfig.js`) — a new service appears on the Services page and appointment form, but not in the nav dropdown until added there.
+- Scheduled posts go live on the next cache refresh (≤ 6 h TTL) — add an hourly revalidate if exact timing matters.
+- Email templates still use the static phone/address from `data/siteConfig.js`.
+- Care journey steps (SiteSettings.careJourney) are not editable yet.
+- Per-post / per-product SEO fields → B6.
+
 **Decided by the owner:**
 - ODM: **Mongoose**
 - **Appointments: no per-slot limit** — any number of requests per slot; the clinic calls each patient to confirm the final time (B4 builds the inbox around this: status New → Confirmed by phone).
@@ -177,4 +197,5 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **B1:** Mongoose + 15 models, seed script, content service → DB with cache tags, forms save-then-email, private prescription storage, dynamic slugs.
 - **B2:** JWT auth + DB revocation, RBAC, proxy guard, login lockout, admin login/overview/account, create-admin CLI, hard 404 for slugs.
 - **B3:** image slots (Unsplash stays until replaced), sharp upload pipeline, /media serving, Admin → Media, private prescription download.
-- **B4:** appointments / orders / messages inbox with enforced workflows, Rx gate, optimistic concurrency, notes + history, search & pagination, badges, mobile menu, email deep links. Next: **B5 Content CMS**.
+- **B4:** appointments / orders / messages inbox with enforced workflows, Rx gate, optimistic concurrency, notes + history, search & pagination, badges, mobile menu, email deep links.
+- **B5:** config-driven content CMS (9 editors, block editor, media picker, reorder, approve), zod on every save, cache-tag revalidation, live site settings on the public site. Next: **B6 SEO manager & Super Admin**.

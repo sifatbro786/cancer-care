@@ -1,5 +1,5 @@
 import { ArrowUpRight, MapPin, Phone } from "lucide-react";
-import { siteConfig } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
 import { IconByKey } from "@/lib/icons";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -20,7 +20,8 @@ function IconChip({ name, tone = "light" }) {
   );
 }
 
-export default function InfoStrip({ data }) {
+export default async function InfoStrip({ data }) {
+  const siteConfig = await getSiteConfig();
   const { hours, call, directions, schedule } = data;
   const { contact, address } = siteConfig;
 

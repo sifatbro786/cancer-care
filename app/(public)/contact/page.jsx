@@ -1,6 +1,7 @@
 import { ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
 import { contactData } from "@/data/contactData";
-import { siteConfig, whatsappHref } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
+import { whatsappLink } from "@/lib/site";
 import { buildMetadata } from "@/lib/seo";
 import PageHeader from "@/components/layout/PageHeader";
 import ContactForm from "@/components/contact/ContactForm";
@@ -9,7 +10,9 @@ import { WhatsappIcon } from "@/components/icons/BrandIcons";
 
 export const metadata = buildMetadata("contact");
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const siteConfig = await getSiteConfig();
+  const whatsappHref = whatsappLink(siteConfig.contact);
   const { header, channels, hoursTitle, mapTitle, form } = contactData;
   const { contact, address, hours } = siteConfig;
 

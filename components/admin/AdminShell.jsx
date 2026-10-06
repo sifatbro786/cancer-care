@@ -4,7 +4,7 @@ import { authData } from "@/data/admin/authData";
 import { logoutAction } from "@/app/(admin)/_actions/auth";
 import { can } from "@/lib/auth/rbac";
 import { LogoMark } from "@/components/brand/Logo";
-import AdminNavLink from "@/components/admin/AdminNavLink";
+import AdminNavList from "@/components/admin/AdminNavList";
 import AdminMobileMenu from "@/components/admin/AdminMobileMenu";
 
 /**
@@ -85,20 +85,7 @@ export default function AdminShell({ user, badges, children }) {
       <aside className="hidden border-r border-line bg-paper-deep lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-64 lg:shrink-0 lg:flex-col">
         <div className="px-5 py-6">{brand}</div>
         <nav aria-label={S.navLabel} className="flex-1 overflow-y-auto px-3">
-          <ul className="flex flex-col gap-1">
-            {items.map((item) => (
-              <li key={item.href}>
-                <AdminNavLink
-                  href={item.href}
-                  icon={item.icon}
-                  badge={item.badge ? badges?.[item.badge] : 0}
-                  badgeLabel={S.badge(badges?.[item.badge] ?? 0)}
-                >
-                  {item.label}
-                </AdminNavLink>
-              </li>
-            ))}
-          </ul>
+          <AdminNavList items={items} badges={badges} badgeLabel={S.badge} />
         </nav>
         <div className="border-t border-line px-5 py-5">{userBlock}</div>
       </aside>

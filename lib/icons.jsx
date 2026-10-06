@@ -18,6 +18,12 @@ import {
   Mail,
   Ribbon,
   UserRound,
+  Settings,
+  Quote,
+  CircleQuestionMark,
+  Newspaper,
+  Package,
+  Tags,
 } from "lucide-react";
 
 /**
@@ -46,7 +52,32 @@ const iconMap = {
   image: ImageIcon,
   mail: Mail,
   user: UserRound,
+  settings: Settings,
+  quote: Quote,
+  help: CircleQuestionMark,
+  newspaper: Newspaper,
+  package: Package,
+  tags: Tags,
 };
+
+/** Keys an admin can pick for a service card (public-facing icons only). */
+export const CONTENT_ICON_KEYS = Object.freeze([
+  "syringe",
+  "stethoscope",
+  "video",
+  "pill",
+  "heart",
+  "activity",
+  "care",
+  "hospital",
+  "clipboard",
+  "calendar",
+  "shield",
+  "leaf",
+  "truck",
+  "ambulance",
+  "ribbon",
+]);
 
 export function getIcon(key) {
   return iconMap[key] ?? HeartPulse;

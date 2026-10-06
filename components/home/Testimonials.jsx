@@ -1,5 +1,5 @@
 import { Star } from "lucide-react";
-import { siteConfig } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
 import { cn } from "@/lib/utils";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Button from "@/components/ui/Button";
@@ -29,7 +29,8 @@ const initialsOf = (name) =>
     .slice(0, 2)
     .toUpperCase();
 
-export default function Testimonials({ data, testimonials }) {
+export default async function Testimonials({ data, testimonials }) {
+  const siteConfig = await getSiteConfig();
   const { eyebrow, title, highlight, facebookCta, ratingLabel, reviewsLabel } = data;
   const { items, summary } = testimonials;
   const facebook = siteConfig.social.find((s) => s.key === "facebook");

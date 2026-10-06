@@ -1,8 +1,7 @@
 import { Atkinson_Hyperlegible_Next, Newsreader, Onest } from "next/font/google";
 import "./globals.css";
-import { rootMetadata, clinicJsonLd, physicianJsonLd } from "@/lib/seo";
+import { rootMetadata } from "@/lib/seo";
 import MotionProvider from "@/components/providers/MotionProvider";
-import JsonLd from "@/components/seo/JsonLd";
 
 /* Body: Atkinson Hyperlegible — designed for low-vision readers (elderly patients). */
 const body = Atkinson_Hyperlegible_Next({
@@ -54,7 +53,6 @@ export default function RootLayout({ children }) {
           Skip to main content
         </a>
         <MotionProvider>{children}</MotionProvider>
-        <JsonLd data={[clinicJsonLd(), physicianJsonLd()]} />
       </body>
     </html>
   );

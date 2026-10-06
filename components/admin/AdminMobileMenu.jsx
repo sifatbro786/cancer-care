@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Menu } from "lucide-react";
 import { authData } from "@/data/admin/authData";
 import Modal from "@/components/ui/Modal";
-import AdminNavLink from "@/components/admin/AdminNavLink";
+import AdminNavList from "@/components/admin/AdminNavList";
 
 /** Mobile navigation in a native <dialog> (focus trap + Escape for free). Closes on navigation. */
 export default function AdminMobileMenu({ items, badges, footer }) {
@@ -25,21 +25,7 @@ export default function AdminMobileMenu({ items, badges, footer }) {
       </button>
       <Modal open={open} onClose={close} title={S.menu} closeLabel={S.close}>
         <nav aria-label={S.navLabel}>
-          <ul className="flex flex-col gap-1">
-            {items.map((item) => (
-              <li key={item.href}>
-                <AdminNavLink
-                  href={item.href}
-                  icon={item.icon}
-                  badge={item.badge ? badges?.[item.badge] : 0}
-                  badgeLabel={S.badge(badges?.[item.badge] ?? 0)}
-                  onNavigate={close}
-                >
-                  {item.label}
-                </AdminNavLink>
-              </li>
-            ))}
-          </ul>
+          <AdminNavList items={items} badges={badges} badgeLabel={S.badge} onNavigate={close} />
         </nav>
         <div className="mt-6 border-t border-line pt-5">{footer}</div>
       </Modal>

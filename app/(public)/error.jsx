@@ -3,12 +3,13 @@
 import { useEffect } from "react";
 import { Phone, RotateCcw } from "lucide-react";
 import { statusData } from "@/data/statusData";
-import { siteConfig } from "@/data/siteConfig";
+import { useSite } from "@/components/providers/SiteProvider";
 import Button from "@/components/ui/Button";
 
 /** Error boundary for public pages — header/footer stay visible, user gets a way forward. */
 export default function PublicError({ error, reset }) {
   const E = statusData.error;
+  const siteConfig = useSite();
 
   useEffect(() => {
     console.error(error);

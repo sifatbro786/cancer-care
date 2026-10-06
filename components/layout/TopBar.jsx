@@ -1,8 +1,9 @@
 import { Clock, MapPin, Phone } from "lucide-react";
-import { siteConfig } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
 import { brandIconMap } from "@/components/icons/BrandIcons";
 
-export default function TopBar() {
+export default async function TopBar() {
+  const siteConfig = await getSiteConfig();
   const { contact, address, hours, social, emergencyNote } = siteConfig;
   const chamber = hours[0];
 

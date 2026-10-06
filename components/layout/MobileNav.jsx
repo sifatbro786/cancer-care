@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown, Clock, MapPin, Phone, X } from "lucide-react";
-import { siteConfig, whatsappHref } from "@/data/siteConfig";
+import { whatsappLink } from "@/lib/site";
+import { useSite } from "@/components/providers/SiteProvider";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/brand/Logo";
 import Button from "@/components/ui/Button";
@@ -15,7 +16,8 @@ const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1
 export default function MobileNav({ open, onClose, pathname }) {
   const panelRef = useRef(null);
   const [expanded, setExpanded] = useState(null);
-  const { nav, cta, contact, address, hours } = siteConfig;
+  const { nav, cta, contact, address, hours } = useSite();
+  const whatsappHref = whatsappLink(contact);
 
   // Scroll lock + focus management + Escape + focus trap
   useEffect(() => {

@@ -1,10 +1,13 @@
 import { ArrowUpRight, Clock, MapPin, Phone } from "lucide-react";
-import { siteConfig, whatsappHref } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
+import { whatsappLink } from "@/lib/site";
 import Button from "@/components/ui/Button";
 import Reveal from "@/components/motion/Reveal";
 import { WhatsappIcon } from "@/components/icons/BrandIcons";
 
-export default function EmergencyContactBanner({ data }) {
+export default async function EmergencyContactBanner({ data }) {
+  const siteConfig = await getSiteConfig();
+  const whatsappHref = whatsappLink(siteConfig.contact);
   const { eyebrow, title, description, callLabel, whatsappLabel, locationTitle, mapLabel } = data;
   const { contact, address, hours } = siteConfig;
 

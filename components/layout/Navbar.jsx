@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown, Menu, Phone } from "lucide-react";
-import { siteConfig } from "@/data/siteConfig";
+import { useSite } from "@/components/providers/SiteProvider";
 import { IconByKey } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/brand/Logo";
@@ -121,7 +121,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { nav, cta, contact } = siteConfig;
+  const { nav, cta, contact } = useSite();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);

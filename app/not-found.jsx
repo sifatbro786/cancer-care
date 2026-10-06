@@ -1,6 +1,6 @@
 import { Phone } from "lucide-react";
 import { notFoundData } from "@/data/notFoundData";
-import { siteConfig } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
 import TopBar from "@/components/layout/TopBar";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -13,7 +13,8 @@ export const metadata = {
 };
 
 /* Root not-found renders outside the (public) group, so it mounts the shell itself. */
-export default function NotFound() {
+export default async function NotFound() {
+  const siteConfig = await getSiteConfig();
   const [home, ...rest] = notFoundData.links;
   return (
     <>

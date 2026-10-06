@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
-import { siteConfig, whatsappHref } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
+import { whatsappLink } from "@/lib/site";
 import Logo from "@/components/brand/Logo";
 import Button from "@/components/ui/Button";
 import { brandIconMap, WhatsappIcon } from "@/components/icons/BrandIcons";
 
-export default function Footer() {
+export default async function Footer() {
+  const siteConfig = await getSiteConfig();
+  const whatsappHref = whatsappLink(siteConfig.contact);
   const { footer, contact, address, hours, social, cta, name } = siteConfig;
   const year = new Date().getFullYear();
 

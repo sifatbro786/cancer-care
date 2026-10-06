@@ -4,6 +4,8 @@ import { isDbConfigured } from "@/lib/db/connect";
 import { CONTENT_TTL, TAGS } from "@/lib/cache/tags";
 import { readingTime } from "@/lib/utils";
 import { applySlots } from "@/lib/media/slots";
+import { mergeSite } from "@/lib/site";
+import { siteConfig } from "@/data/siteConfig";
 import { mockSource } from "@/services/sources/mock";
 import { dbSource } from "@/services/sources/db";
 
@@ -139,12 +141,24 @@ export async function getAllBlogSlugs() {
   return q.blogSlugs();
 }
 
-/**
- * Settings & per-page SEO from the DB.
- * Not consumed by the UI yet — layout/header/footer move to these in B5, lib/seo.js in B6.
- */
+/** Raw SiteSettings document (admin/internal use). Public UI reads getSiteConfig(). */
 export async function getSiteSettings() {
   return q.siteSettings();
+}
+
+/**
+ * The site config every public component reads: data/siteConfig.js (nav, CTAs, brand)
+ * overlaid with the admin-editable settings (contact, address, hours, socials, footer).
+ * Fails soft — a DB hiccup must never take the header/footer (i.e. every page) down.
+ */
+export async function getSiteConfig() {
+  if (!useDb) return siteConfig;
+  try {
+    return mergeSite(siteConfig, await q.siteSettings());
+  } catch (err) {
+    console.error("[content] site settings unavailable, using defaults:", err?.message);
+    return siteConfig;
+  }
 }
 
 export async function getPageSeo(key) {

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { Phone } from "lucide-react";
 import { appointmentData } from "@/data/appointmentData";
-import { siteConfig, whatsappHref } from "@/data/siteConfig";
+import { whatsappLink } from "@/lib/site";
 import { buildMetadata } from "@/lib/seo";
-import { getServices } from "@/services/content";
+import { getServices, getSiteConfig } from "@/services/content";
 import PageHeader from "@/components/layout/PageHeader";
 import AppointmentForm from "@/components/appointment/AppointmentForm";
 import Button from "@/components/ui/Button";
@@ -12,6 +12,8 @@ import { WhatsappIcon } from "@/components/icons/BrandIcons";
 export const metadata = buildMetadata("appointment");
 
 export default async function AppointmentPage() {
+  const siteConfig = await getSiteConfig();
+  const whatsappHref = whatsappLink(siteConfig.contact);
   const services = await getServices();
   const { header, aside } = appointmentData;
   // Only what the client form needs — keeps the RSC payload small

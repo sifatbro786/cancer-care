@@ -1,10 +1,11 @@
 import { Phone } from "lucide-react";
-import { siteConfig } from "@/data/siteConfig";
+import { getSiteConfig } from "@/services/content";
 import Button from "@/components/ui/Button";
 import Reveal from "@/components/motion/Reveal";
 
 /** Compact closing CTA used at the end of inner pages. */
-export default function CtaBand({ title, description, primary }) {
+export default async function CtaBand({ title, description, primary }) {
+  const siteConfig = await getSiteConfig();
   return (
     <section aria-label={title} className="py-16 sm:py-24">
       <div className="container-site">

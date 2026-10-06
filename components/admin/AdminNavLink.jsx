@@ -7,11 +7,13 @@ import { cn } from "@/lib/utils";
 
 /**
  * Exact match for the overview, prefix match for sections (/admin/orders/123 keeps "Orders" active).
+ * `match` = extra section prefixes (e.g. medicine categories keep "Medicines" active).
  * `badge` = number of items waiting (hidden when 0); `badgeLabel` is the screen-reader text.
  */
-export default function AdminNavLink({ href, icon, badge, badgeLabel, onNavigate, children }) {
+export default function AdminNavLink({ href, match = [], icon, badge, badgeLabel, onNavigate, children }) {
   const pathname = usePathname();
-  const active = href === "/admin" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+  const under = (p) => pathname === p || pathname.startsWith(`${p}/`);
+  const active = href === "/admin" ? pathname === href : under(href) || match.some(under);
 
   return (
     <Link

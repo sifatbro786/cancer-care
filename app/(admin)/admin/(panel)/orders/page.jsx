@@ -19,7 +19,7 @@ export default async function OrdersPage({ searchParams }) {
   const data = isDbConfigured() ? await listOrders({ tab, q, page }) : null;
 
   return (
-    <InboxLayout copy={O} base="/admin/orders" tabKeys={ORDER_TAB_KEYS} data={data} tab={tab} q={q}>
+    <InboxLayout copy={O} base="/admin/orders" tabKeys={ORDER_TAB_KEYS} data={data} tab={tab} q={q} exportKind="orders">
       {data?.items.map((o) => (
         <li key={o.id}>
           <Link href={`/admin/orders/${o.id}`} className={rowClass}>

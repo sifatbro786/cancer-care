@@ -97,6 +97,22 @@ scripts/create-admin.mjs npm run create-admin
 | `ink` / `ink-soft` | text | 13.8 / 6.8:1 on paper |
 | `paper` #FAF8F4 | page background | — |
 
+### Content CMS (B5) · SEO, users, audit (B6)
+- Content editors live at `/admin/content/:entity` — one config-driven engine: copy + form structure in `data/admin/cmsData.js`, validation in `lib/validation/cms.js` (zod, authoritative), data access in `services/admin/cms.js`. **Adding a field** = one line in each of the first two (+ the Mongoose model if it's new).
+- Saves expire the cache tags of the public pages that show the content; the change appears on the next page load.
+- Site settings (contact, hours, socials, footer) override `data/siteConfig.js`; navigation and brand stay in code.
+- SEO: `getSeoConfig()` = `data/seoData.js` + Admin → Search & sharing. Empty admin field = code default.
+- Users: super admins add users at `/admin/users` (temporary password shown once). Audit log at `/admin/audit` (400-day retention).
+
+### Hardening & operations (B7)
+- **Authorization:** every Server Action and admin Route Handler checks its own permission (`authorize` / `withAdmin`); the proxy and layouts are UX only. Roles/permissions: `lib/auth/rbac.js`.
+- **Injection:** Mongoose `sanitizeFilter` + `strictQuery` globally; all input is zod-parsed; our own operators use `trusted()`; regex input is escaped. CSV exports neutralise formula cells (`=`, `+`, `-`, `@`).
+- **CSRF:** Server Actions are POST + Origin-checked by Next; admin uploads require a same-origin Origin/Sec-Fetch-Site (`isSameOriginStrict`); CSV export refuses cross-site requests; session cookie is `SameSite=Lax`, `__Host-` prefixed in production. Admin pages can't be framed (`frame-ancestors 'none'`).
+- **Uploads:** magic-byte checks, re-encoding (images), size caps, UUID names, private prescription storage with SHA-256 check.
+- **Errors:** `instrumentation.js` writes one JSON line per server error to stderr (digest, route, message, short stack — no headers/bodies). The digest shown on the error page matches the log line.
+- **Indexes:** `npm run seed` runs `createIndexes()` for every model — run it after each deploy that touches models.
+- **Smoke test:** `npm run smoke` (or `BASE_URL=https://yourdomain npm run smoke`) — 31 black-box checks: pages, 404s, admin guards, forged cookie, cross-origin + operator-injection rejection, media traversal, security headers. Read-only; safe on production.
+
 Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-vision readers), Newsreader (serif italic accent).
 
 ## Deploy
@@ -123,7 +139,31 @@ Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-visi
 > The rate limiter is in-memory per instance; for a strict global limit add Upstash Redis.
 
 ### VPS (later)
-`npm ci && npm run seed && npm run build && pm2 start npm --name cancer-care -- start` behind Nginx + Certbot. Same env vars in `.env.production`, plus `MONGODB_URI`, `AUTH_SECRET` and an absolute `PRIVATE_STORAGE_DIR`. Then `npm run create-admin` once.
+`npm ci && npm run seed && npm run build && pm2 start npm --name cancer-care -- start` behind Nginx + Certbot, then `BASE_URL=https://yourdomain npm run smoke`. Same env vars in `.env.production`, plus `MONGODB_URI`, `AUTH_SECRET` and an absolute `PRIVATE_STORAGE_DIR`. Then `npm run create-admin` once.
+
+## Admin guide (for clinic staff)
+
+Sign in at **/admin/login**. What each section is for:
+
+| Section | Use it to |
+|---|---|
+| **Overview** | See what needs attention today: new appointment requests, prescriptions to verify, unread messages, anything whose email failed. |
+| **Appointments** | Call the patient, then move the request **New → Confirmed → Completed** (or Cancelled). Add notes for colleagues. *Download CSV* exports the current tab. |
+| **Orders** | Open the prescription, **Verify** or **Reject** it (a reason is required; rejecting cancels the order), then **Processing → Dispatched → Delivered**. *Download CSV* for accounts. |
+| **Messages** | Contact-form messages; opening one marks it read. Archive when handled. |
+| **Doctor profile / Services / Medicines / Blog / Testimonials / FAQ** | Edit website content. **Save** publishes immediately. ↑ ↓ change the order on the site; *Hide* removes an item from the site without deleting it. |
+| **Medicines → Categories**, **Blog → Categories** | Shop / blog filters. A category in use can't be deleted. |
+| **Testimonials** | New ones arrive under **Waiting** — only approved ones appear on the site. Use initials, never full names or diagnoses without written consent. |
+| **Blog** | *Draft* is private. *Published* with a future date = scheduled. Build the article from blocks (paragraph, heading, list, note box). |
+| **Media** | Upload the clinic's photos; replace stock photos via the site image slots. |
+| **Site settings** | Phone, WhatsApp, email, address, map, opening hours, social links, footer text, review score. |
+| **Search & sharing** | Google title/description and the share image for each page; *Search defaults* for the whole site. Empty = built-in text. |
+| **Users** *(super admin)* | Add staff, change roles, disable, reset passwords (a temporary password is shown once — share it privately). |
+| **Audit log** *(super admin)* | Who did what and when — sign-ins, edits, status changes, prescription views, exports. |
+| **Account** | Change your own password (signs out your other devices). |
+
+If someone else saves the same item while you're editing, you'll see *"Someone else saved this"* — reload, then make your change again.
+Locked out? Another super admin can **Unlock** / **Reset password**, or on the server: `npm run create-admin -- --email you@clinic.com --reset-password`.
 
 ## Placeholders to replace before launch
 All marked `// TODO(client)`:

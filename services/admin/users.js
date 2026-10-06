@@ -47,6 +47,17 @@ async function activeSuperAdmins() {
   return User.countDocuments({ role: "super_admin", active: true });
 }
 
+/**
+ * Re-check AFTER the write and roll it back if no active super admin is left.
+ * Closes the race where two super admins demote/disable each other at the same moment:
+ * both writes land, both re-checks see zero, both roll back — never a locked-out system.
+ */
+async function keepsASuperAdmin(userId, restore) {
+  if ((await activeSuperAdmins()) > 0) return true;
+  await User.updateOne({ _id: userId }, { $set: restore });
+  return false;
+}
+
 async function loadTarget(id, actorId) {
   if (!isValidObjectId(id)) return { error: { ok: false, code: "notFound" } };
   if (String(id) === String(actorId)) return { error: { ok: false, code: "self" } };
@@ -84,6 +95,9 @@ export async function setActive({ id, active, actorId }) {
   if (!active && user.role === "super_admin" && (await activeSuperAdmins()) <= 1) return { ok: false, code: "lastSuper" };
   // Disabling takes effect on the person's next request: getCurrentUser() re-reads `active`
   await User.updateOne({ _id: user._id }, { $set: { active } });
+  if (!active && user.role === "super_admin" && !(await keepsASuperAdmin(user._id, { active: true }))) {
+    return { ok: false, code: "lastSuper" };
+  }
   return { ok: true, user, changed: true };
 }
 
@@ -95,6 +109,9 @@ export async function setRole({ id, role, actorId }) {
   if (user.role === role) return { ok: true, user, changed: false };
   if (user.role === "super_admin" && user.active && (await activeSuperAdmins()) <= 1) return { ok: false, code: "lastSuper" };
   await User.updateOne({ _id: user._id }, { $set: { role } }); // role is read from the DB on every request
+  if (user.role === "super_admin" && !(await keepsASuperAdmin(user._id, { role: "super_admin" }))) {
+    return { ok: false, code: "lastSuper" };
+  }
   return { ok: true, user, changed: true, from: user.role };
 }
 

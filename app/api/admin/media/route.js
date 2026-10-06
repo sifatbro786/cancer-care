@@ -2,7 +2,7 @@ import { PERMISSIONS } from "@/lib/auth/rbac";
 import { withAdmin } from "@/lib/auth/session";
 import { MEDIA_MAX_BYTES } from "@/lib/server/media";
 import { rateLimit } from "@/lib/server/rateLimit";
-import { getClientIp, isSameOrigin } from "@/lib/server/request";
+import { getClientIp, isSameOriginStrict } from "@/lib/server/request";
 import { mediaData } from "@/data/admin/mediaData";
 import { createMedia } from "@/services/admin/media";
 import { audit } from "@/lib/server/audit";
@@ -18,7 +18,7 @@ const json = (body, status = 200) => Response.json(body, { status, headers: { "C
  * the automatic Origin check that Server Actions have).
  */
 export const POST = withAdmin(PERMISSIONS.contentWrite, async (request, _ctx, user) => {
-  if (!isSameOrigin(request)) return json({ ok: false, message: E.forbidden }, 403);
+  if (!isSameOriginStrict(request)) return json({ ok: false, message: E.forbidden }, 403);
 
   const limit = rateLimit(`media-upload:${user.id}`, { limit: 60, windowMs: 10 * 60 * 1000 });
   if (!limit.ok) return json({ ok: false, message: E.rateLimited }, 429);

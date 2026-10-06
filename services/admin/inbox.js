@@ -172,6 +172,13 @@ const ORDER_TABS = {
 };
 export const ORDER_TAB_KEYS = Object.keys(ORDER_TABS);
 
+/** Tab → Mongo filter, shared with the CSV export (same tabs, same meaning). */
+export function inboxTabFilter(kind, tab) {
+  const tabs = kind === "appointments" ? APPOINTMENT_TABS : kind === "orders" ? ORDER_TABS : null;
+  if (!tabs) return null;
+  return (Object.hasOwn(tabs, tab) ? tabs[tab] : tabs.all).filter;
+}
+
 const orderRow = (o) => ({
   id: String(o._id),
   reference: o.reference,

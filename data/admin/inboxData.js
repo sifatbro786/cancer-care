@@ -4,6 +4,11 @@ const statusTone = { new: "brand", confirmed: "sage", completed: "muted", cancel
 
 export const inboxData = {
   common: {
+    exportHeading: "Download CSV",
+    exportHint: "Uses the selected tab. Dates are optional (appointments: requested day · orders: day placed). Up to 10,000 rows.",
+    exportFrom: "From",
+    exportTo: "To",
+    exportButton: "Download CSV",
     dbOff: "Database is not connected (MONGODB_URI is not set) — the inbox is unavailable.",
     searchLabel: "Search",
     searchPlaceholder: "Reference, name or mobile",

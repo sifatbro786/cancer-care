@@ -25,6 +25,14 @@ const nextConfig = {
 
   async headers() {
     return [
+      {
+        // Private admin APIs (exports, prescriptions, uploads) — never cached, never indexed
+        source: "/api/admin/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
       { source: "/:path*", headers: securityHeaders },
       {
         // Admin is never indexed or cached by shared caches (CDN / proxies)
@@ -32,6 +40,9 @@ const nextConfig = {
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
           { key: "Cache-Control", value: "private, no-store" },
+          // Admin is never framed (clickjacking); public pages keep SAMEORIGIN above
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" },
         ],
       },
     ];

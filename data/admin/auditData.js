@@ -29,6 +29,7 @@ export const auditData = {
     "inbox.prescription_view": "Opened a prescription",
     "inbox.message_status": "Message status",
     "inbox.note": "Added a note",
+    "inbox.export": "Downloaded a CSV export",
     "media.upload": "Uploaded an image",
     "media.delete": "Deleted an image",
     "media.alt": "Edited alt text",

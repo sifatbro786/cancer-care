@@ -17,7 +17,7 @@ export default async function AppointmentsPage({ searchParams }) {
   const data = isDbConfigured() ? await listAppointments({ tab, q, page }) : null;
 
   return (
-    <InboxLayout copy={A} base="/admin/appointments" tabKeys={APPOINTMENT_TAB_KEYS} data={data} tab={tab} q={q}>
+    <InboxLayout copy={A} base="/admin/appointments" tabKeys={APPOINTMENT_TAB_KEYS} data={data} tab={tab} q={q} exportKind="appointments">
       {data?.items.map((a) => (
         <li key={a.id}>
           <Link href={`/admin/appointments/${a.id}`} className={rowClass}>

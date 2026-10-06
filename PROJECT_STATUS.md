@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-06 · Current phase: **B1–B6 done → B7 Hardening & handover next** (see 7-step plan below)_
+_Last updated: 2026-10-06 · Current phase: **B1–B7 code done → owner verification (lint, build, smoke, E2E on the dev PC) → launch** (see 7-step plan below)_
 
 ---
 
@@ -16,7 +16,7 @@ _Last updated: 2026-10-06 · Current phase: **B1–B6 done → B7 Hardening & ha
 | 3 | Content pages: About, Services, Patient Guide, Blog list + `[slug]` | ✅ Done |
 | 4 | Interactive pages + email: Appointment, Contact, Shop + `[slug]` + Prescription upload, Nodemailer | ✅ Done |
 | 5 | Production polish: sitemap/robots, OG image, a11y audit, Lighthouse 90+, loading/error states, Vercel deploy | ✅ Done |
-| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1 ✅ B2 ✅ B3 ✅ B4 ✅ B5 ✅ B6 ✅) |
+| — | Backend: MongoDB, Admin + Super Admin dashboard, order & prescription management, SEO admin | 🔄 In progress (B1–B7 ✅ code · ⏳ build + E2E on dev PC) |
 
 ### Phase 4 — what was built
 - Pages: `/appointment` (type → day/slot → details, `?type=online` / `?service=` prefill), `/contact` (channels, form, map, hours), `/shop` (search, category filter, `?upload=1` opens upload), `/shop/[slug]` (SSG, Product JSON-LD)
@@ -54,7 +54,7 @@ Everything stays inside this Next.js app (Route Handlers + Server Actions + Mong
 | B4 | **Admin shell & inbox** — `app/(admin)/` route group with its own layout; overview counts; Appointments (New → Confirmed → Completed/Cancelled + notes); Orders with prescription verify/reject → Dispatched → Delivered; Messages (read/unread); server-side pagination & filters | ✅ |
 | B5 | **Content CMS** — CRUD for doctor profile, site settings (phone, hours, socials, map), services, products & categories, blog (block editor, draft/publish), testimonials (approve), FAQ (ordering); zod on every form; save → revalidate affected public pages | ✅ |
 | B6 | **SEO manager & Super Admin** — per-page title/description/OG from admin, per-post/product SEO; admin user management (create/disable/reset); audit log | ✅ |
-| B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ⬜ |
+| B7 | **Hardening & handover** — authz review of every action, NoSQL-injection & upload safety, CSRF for admin, Mongo indexes, error logging, CSV export (orders/appointments), end-to-end flow test, admin usage notes in README | ✅ (code) |
 
 New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.35 ✅ (now a direct dependency).
 
@@ -166,9 +166,33 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.
 
 ### B6 notes
 - Existing users get `mustChangePassword: false` by default — no migration needed. `npm run create-admin` still works for recovery.
-- "Last super admin" check and the update are two queries; two super admins demoting each other at the same instant could both pass. Acceptable for 2–3 staff; B7 can make it atomic.
+- "Last super admin" check and the update are two queries; two super admins demoting each other at the same instant could both pass. → fixed in B7 (write, re-count, roll back).
 - Audit tabs show a count only for the active filter (counting every group on a large log costs a query each).
 - Email templates still use static contact details (from B5 notes).
+
+### B7 — what was done
+- **Authz review (scripted):** all 20 Server Actions + 6 admin Route Handlers checked — each authorizes itself (`authorize` / `withAdmin` with the right permission; SEO entities `seo:write`, users `users:manage`, audit `audit:read`). `loginAction` is public by design; public form routes are same-origin + zod + rate-limited.
+- **CSRF:** new `isSameOriginStrict` for cookie-authenticated admin POSTs (Origin must be present and ours, or `Sec-Fetch-Site: same-origin`; same-site subdomains refused) — used by media upload. `isSameSiteRequest` for private GET downloads (CSV). Admin pages: `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'`. `/api/admin/**`: `no-store` + noindex.
+- **NoSQL injection:** global `sanitizeFilter`/`strictQuery` (B1), every input zod-parsed, all our operators via `trusted()` on the value, regex input escaped (inbox, CMS, audit search). No `$where`/`$function`. Smoke test sends `{ "$gt": "" }` payloads.
+- **Last super admin — now race-safe:** write → re-count → roll back if zero active super admins remain (`keepsASuperAdmin`).
+- **Error logging:** `instrumentation.js#onRequestError` → one JSON line per server error (digest, route, type, message, 8-line stack; never headers/cookies/bodies/query).
+- **CSV export:** `GET /api/admin/export/{appointments|orders}?tab=&from=&to=` (inbox:read) — same tabs as the inbox, appointments by requested day / orders by day placed (Dhaka), ≤10 000 rows (`X-Export-Truncated`), UTF-8 BOM (Bangla in Excel), **formula-injection guard**, audited (`inbox.export`). "Download CSV" panel on both inbox lists (plain GET form, no JS). New index `Appointment { date, startsAt }`.
+- **Smoke test:** `npm run smoke` / `BASE_URL=… npm run smoke` — 31 read-only black-box checks (pages 200, unknown slugs 404, admin redirect, admin headers, 401 on private APIs, forged `alg:none` cookie, cross-origin 403, operator injection 422, media traversal 404, security headers).
+- **README:** B5–B7 architecture notes, hardening/operations section, **Admin guide for clinic staff** (what each screen is for), VPS step ends with the smoke test.
+- Verified here: esbuild parse of all 214 source files, 0 missing named imports, CSV + origin helpers 16/16.
+
+### Before launch (owner, on the dev PC / VPS)
+1. `npm run lint` · `npm run build` — first full run since B5 (the dev VM couldn't run them).
+2. `npm run seed` (creates the new indexes: AuditLog TTL, Appointment date).
+3. `npm run dev` → `npm run smoke` → all 31 green.
+4. Manual E2E in the browser: book appointment → confirm in admin; order with prescription → verify → deliver; edit a service/settings/SEO → check the public page; add a user → sign in with the temp password → change it; check `/admin/audit`; download both CSVs.
+5. Fill the `TODO(client)` placeholders, set `NEXT_PUBLIC_SITE_URL`, deploy.
+
+### Known limits (accepted)
+- Rate limits are in-memory (single PM2 process). Redis if scaled out.
+- Stolen session cookie valid ≤12 h unless password changed / user disabled.
+- Email templates use the static contact details from `data/siteConfig.js` (template functions are sync; change them there too, or pass `getSiteConfig()` through later).
+- Nav dropdown / footer service links are code; care-journey steps not editable; scheduled posts appear on the next cache refresh (≤6 h).
 
 **Decided by the owner:**
 - ODM: **Mongoose**
@@ -217,4 +241,5 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **B3:** image slots (Unsplash stays until replaced), sharp upload pipeline, /media serving, Admin → Media, private prescription download.
 - **B4:** appointments / orders / messages inbox with enforced workflows, Rx gate, optimistic concurrency, notes + history, search & pagination, badges, mobile menu, email deep links.
 - **B5:** config-driven content CMS (9 editors, block editor, media picker, reorder, approve), zod on every save, cache-tag revalidation, live site settings on the public site.
-- **B6:** admin-editable SEO (per page, defaults, per article/medicine, noindex, share images), user management with one-time temporary passwords and last-super-admin guard, append-only audit log + viewer. Next: **B7 Hardening & handover**.
+- **B6:** admin-editable SEO (per page, defaults, per article/medicine, noindex, share images), user management with one-time temporary passwords and last-super-admin guard, append-only audit log + viewer.
+- **B7:** authz review, strict CSRF for admin writes/downloads, admin framing CSP, race-safe last-super-admin, structured error logging, CSV exports with formula guard, `npm run smoke`, README admin guide. Next: owner verification → launch.

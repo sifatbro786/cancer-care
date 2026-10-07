@@ -3,7 +3,7 @@
  * public chrome. Never indexed: noindex here + X-Robots-Tag header (next.config) + robots.txt.
  */
 export const metadata = {
-  title: { template: "%s · Admin · Cancer Care", default: "Admin · Cancer Care" },
+  title: { template: "%s · Admin · Medicare Haven", default: "Admin · Medicare Haven" },
   robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
 };
 

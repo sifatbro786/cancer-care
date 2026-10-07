@@ -5,10 +5,12 @@
  */
 
 export const siteConfig = {
-  name: "Cancer Care & Medical Services",
-  shortName: "Cancer Care",
+  name: "Medicare Haven",
+  shortName: "Medicare Haven",
+  // Descriptor under the wordmark (logo) — keep short, it renders uppercase + tracked
+  logoTagline: "Cancer & Medical Care",
   tagline: "Specialised cancer care, close to home",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://cancer-care.vercel.app",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://medicarehavenbd.com",
   locale: "en_BD",
 
   contact: {
@@ -16,7 +18,7 @@ export const siteConfig = {
     phoneHref: "tel:+8801540129969",
     whatsapp: "8801540129969",
     whatsappMessage: "Hello, I would like to book a consultation.",
-    email: "care@cancercare.com.bd", // TODO(client): confirm official email
+    email: "care@cancercare.com.bd", // TODO(client): create this mailbox in cPanel → Email Accounts
     emailHref: "mailto:care@cancercare.com.bd",
   },
 

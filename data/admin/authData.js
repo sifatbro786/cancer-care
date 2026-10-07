@@ -36,7 +36,7 @@ export const authData = {
   },
 
   shell: {
-    brand: "Cancer Care",
+    brand: "Medicare Haven",
     brandSub: "Admin",
     nav: [
       { label: "Overview", href: "/admin", icon: "layout" },

@@ -33,7 +33,7 @@ export const legalData = {
         heading: "Who we are",
         blocks: [
           {
-            p: "This website is run by Cancer Care & Medical Services, an oncology chamber and day care chemotherapy service in Dhaka. In this policy, “we” and “us” mean the clinic team.",
+            p: "This website is run by Medicare Haven, an oncology chamber and day care chemotherapy service in Dhaka. In this policy, “we” and “us” mean the clinic team.",
           },
         ],
       },
@@ -237,7 +237,7 @@ export const legalData = {
         heading: "Website content",
         blocks: [
           {
-            p: "The text, design and logo on this website belong to Cancer Care & Medical Services and may not be copied for commercial use without permission. Some photographs are licensed from third parties.",
+            p: "The text, design and logo on this website belong to Medicare Haven and may not be copied for commercial use without permission. Some photographs are licensed from third parties.",
           },
         ],
       },

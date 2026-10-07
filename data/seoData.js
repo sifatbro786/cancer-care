@@ -4,12 +4,13 @@
  */
 export const seoData = {
   default: {
-    title: "Cancer Care & Medical Services — Day Care Chemotherapy & Oncology, Dhaka",
-    titleTemplate: "%s | Cancer Care & Medical Services",
+    title: "Medicare Haven — Cancer Care, Day Care Chemotherapy & Oncology, Dhaka",
+    titleTemplate: "%s | Medicare Haven",
     description:
       "Specialised cancer care in Dhaka: day care chemotherapy, in-person oncology chamber in Kafrul (Dhaka Cantonment), online telemedicine and genuine oncology medicine delivery.",
     ogHeadline: "Day care chemotherapy, chamber & online oncology consultation",
     keywords: [
+      "Medicare Haven",
       "cancer care Dhaka",
       "oncologist Dhaka Cantonment",
       "day care chemotherapy Bangladesh",
@@ -63,13 +64,13 @@ export const seoData = {
   privacy: {
     title: "Privacy Policy",
     description:
-      "How Cancer Care & Medical Services collects, uses and protects information from appointments, medicine orders, prescriptions and messages.",
+      "How Medicare Haven collects, uses and protects information from appointments, medicine orders, prescriptions and messages.",
     path: "/privacy-policy",
   },
   terms: {
     title: "Terms of Use",
     description:
-      "Terms for using the Cancer Care & Medical Services website, booking appointments, online consultations and ordering medicines.",
+      "Terms for using the Medicare Haven website, booking appointments, online consultations and ordering medicines.",
     path: "/terms",
   },
 };

@@ -33,7 +33,7 @@ export default function Logo({ invert = false, className }) {
             invert ? "text-brand-200" : "text-brand-700"
           )}
         >
-          & Medical Services
+          {siteConfig.logoTagline}
         </span>
       </span>
     </Link>

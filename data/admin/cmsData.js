@@ -578,7 +578,7 @@ export const cmsData = {
         {
           title: "Search result",
           fields: [
-            { name: "title", type: "text", label: "Page title", max: 120, width: "full", hint: "Shown as “Title | Cancer Care & Medical Services”. Empty = default." },
+            { name: "title", type: "text", label: "Page title", max: 120, width: "full", hint: "Shown as “Title | Medicare Haven”. Empty = default." },
             { name: "description", type: "textarea", label: "Description", max: 300, width: "full", hint: "About 150–160 characters work best." },
             { name: "noindex", type: "checkbox", label: "Hide this page from search engines" },
           ],

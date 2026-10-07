@@ -26,7 +26,7 @@ export default function DoctorOverview({ data, doctor }) {
     <section aria-labelledby="doctor-title" className="py-20 sm:py-28">
       <div className="container-site grid gap-12 lg:grid-cols-12 lg:gap-20">
         <Reveal as="figure" className="lg:col-span-5">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-mist">
+          <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-mist">
             <SmartImage
               src={doctor.photo.src}
               alt={doctor.photo.alt}
@@ -43,7 +43,7 @@ export default function DoctorOverview({ data, doctor }) {
 
         <Reveal delay={0.08} className="flex flex-col lg:col-span-7 lg:pt-6">
           <Eyebrow>{eyebrow}</Eyebrow>
-          <h2 id="doctor-title" className="mt-5 text-4xl leading-[1.08] font-semibold tracking-[-0.025em] sm:text-5xl">
+          <h2 id="doctor-title" className="mt-5 text-4xl leading-[1.08] font-semibold tracking-tight sm:text-5xl">
             {doctor.name}
           </h2>
           <p className="mt-3 font-display text-lg font-medium text-brand-700">{doctor.shortTitle}</p>

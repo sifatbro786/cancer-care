@@ -48,10 +48,12 @@ export const siteConfig = {
     { key: "whatsapp", label: "WhatsApp", href: "https://wa.me/8801540129969" },
   ],
 
-  /** Primary navigation. `children` render as a dropdown on desktop, accordion on mobile. */
+  /**
+   * Primary navigation. `children` render as a dropdown on desktop, accordion on mobile.
+   * Optional `icon` (icon key) renders before the label; `shortLabel` replaces it below xl.
+   */
   nav: [
     { label: "Home", href: "/" },
-    { label: "About Doctor", href: "/about" },
     {
       label: "Services",
       href: "/services",
@@ -62,8 +64,10 @@ export const siteConfig = {
         { label: "Oncology Medicine Support", href: "/services#oncology-medicine-support", icon: "pill" },
       ],
     },
+    // Medicine shop = second business priority (after consultation) → early, with an icon.
+    { label: "Medicine Shop", shortLabel: "Shop", href: "/shop", icon: "pill" },
+    { label: "About Doctor", href: "/about" },
     { label: "Patient Guide", href: "/patient-guide" },
-    { label: "Shop", href: "/shop" },
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },
   ],
@@ -104,8 +108,16 @@ export const siteConfig = {
         ],
       },
     ],
+    // Medical disclaimer — no longer in the footer bar; shown on the Terms of Use page
+    // (and editable from Admin → Site settings).
     disclaimer:
       "Information on this website is for general awareness and does not replace a consultation. In a medical emergency, go to the nearest hospital emergency department.",
+    rights: "All rights reserved.",
+    legal: [
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms of Use", href: "/terms" },
+    ],
+    credit: { prefix: "Developed by", label: "STR Solutions LTD", href: "http://strsltd.com" },
   },
 };
 

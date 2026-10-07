@@ -3,7 +3,7 @@ export const blogPageData = {
   header: {
     eyebrow: "Health & awareness",
     title: "Reading for patients and caregivers",
-    highlight: "caregivers",
+    highlight: "for patients and caregivers",
     description: "Plain-language articles on chemotherapy, nutrition, early detection and looking after someone you love.",
   },
   allLabel: "All",

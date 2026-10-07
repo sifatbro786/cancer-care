@@ -35,7 +35,7 @@ export default async function LoginPage({ searchParams }) {
           <div className="w-full max-w-sm">
             <Eyebrow>{L.eyebrow}</Eyebrow>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight">
-              <AccentText text={L.title} accent={L.highlight} className="text-brand-700" />
+              <AccentText text={L.title} accent={L.highlight} />
             </h1>
             <p className="mt-3 text-ink-soft">{L.intro}</p>
 

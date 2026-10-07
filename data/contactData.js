@@ -3,7 +3,7 @@ export const contactData = {
   header: {
     eyebrow: "Contact",
     title: "Talk to a real person at our chamber",
-    highlight: "a real person",
+    highlight: "at our chamber",
     description: "Call or WhatsApp for the quickest reply. For anything that can wait, send us a message and we'll respond within one working day.",
   },
   channels: {

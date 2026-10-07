@@ -16,10 +16,10 @@ export default function IntroStatement({ data, stats }) {
             <Eyebrow>{eyebrow}</Eyebrow>
             <h2
               id="intro-title"
-              className="mt-5 text-2xl leading-[1.35] font-medium text-ink sm:text-[2rem] sm:leading-[1.3]"
+              className="mt-5 text-2xl leading-[1.35] font-medium tracking-[-0.015em] text-ink-quiet sm:text-[2rem] sm:leading-[1.3]"
             >
               {before}
-              <em className="font-serif font-normal text-brand-700 italic">{highlight}</em>
+              <span className="text-ink">{highlight}</span>
               {after}
             </h2>
 

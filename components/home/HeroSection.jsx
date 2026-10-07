@@ -29,20 +29,21 @@ export default function HeroSection({ data }) {
             className="absolute inset-0 -z-10 bg-gradient-to-t from-brand-950/95 via-brand-950/70 to-brand-950/20 lg:bg-gradient-to-r lg:from-brand-950/90 lg:via-brand-950/55 lg:to-transparent"
           />
 
-          <div className="grid min-h-[38rem] content-end px-6 pt-28 pb-24 sm:px-10 lg:min-h-[42rem] lg:px-14 lg:pb-28">
-            <div className="hero-rise max-w-2xl">
+          {/* Desktop: card fits the first screen (viewport − top bar − navbar − section padding), clamped for very short/tall screens */}
+          <div className="grid min-h-[36rem] content-end px-6 pt-24 pb-24 sm:px-10 lg:h-[clamp(28rem,calc(100svh-9.75rem),40rem)] lg:min-h-0 lg:px-14 lg:pt-12 lg:pb-[6.5rem]">
+            <div className="hero-rise max-w-[52rem]">
               <p className="text-sm font-medium tracking-wide text-brand-100/90">{eyebrow}</p>
 
               <h1
                 id="hero-title"
-                className="mt-5 text-[2.6rem] leading-[1.04] font-semibold tracking-[-0.03em] text-white sm:text-6xl lg:text-[4.4rem]"
+                className="mt-4 text-[2.4rem] leading-[1.06] font-semibold tracking-[-0.03em] text-white sm:text-5xl lg:text-[3rem] xl:text-[3.25rem]"
               >
-                <AccentText text={title} accent={highlight} className="text-brand-100" />
+                <AccentText text={title} accent={highlight} invert />
               </h1>
 
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-brand-50/85">{description}</p>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-brand-50/85">{description}</p>
 
-              <div className="mt-9 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap gap-3">
                 <Button href={primaryCta.href} variant="light" size="lg" withArrow>
                   {primaryCta.label}
                 </Button>
@@ -53,8 +54,8 @@ export default function HeroSection({ data }) {
             </div>
           </div>
 
-          {/* Proof — restrained glass card, hidden on small screens */}
-          <div className="absolute right-6 bottom-24 hidden items-center gap-4 rounded-2xl bg-brand-950/55 py-3 pr-5 pl-3 text-white ring-1 ring-white/15 backdrop-blur-md md:flex lg:right-12 lg:bottom-28">
+          {/* Proof — restrained glass card, hidden below xl so it never collides with the CTAs */}
+          <div className="absolute right-6 bottom-24 hidden items-center gap-4 rounded-2xl bg-brand-950/55 py-3 pr-5 pl-3 text-white ring-1 ring-white/15 backdrop-blur-md xl:flex lg:right-12 lg:bottom-[6.5rem]">
             <ul className="flex -space-x-2" aria-hidden="true">
               {proof.initials.map((ini, i) => (
                 <li

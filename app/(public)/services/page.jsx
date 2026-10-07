@@ -87,7 +87,7 @@ export default async function ServicesPage() {
                 </Reveal>
 
                 <div className={cn("lg:col-span-7", flip && "lg:order-1")}>
-                  <p aria-hidden="true" className="font-serif text-5xl text-brand-500 italic">
+                  <p aria-hidden="true" className="font-display text-sm font-semibold tracking-[0.16em] text-brand-700 tabular-nums">
                     {String(i + 1).padStart(2, "0")}
                   </p>
                   <h2 id={`${s.slug}-title`} className="mt-3 text-3xl leading-tight font-semibold sm:text-4xl">
@@ -136,7 +136,10 @@ export default async function ServicesPage() {
         })}
       </div>
 
-      <CareJourney data={{ ...journeyCopy, images: homeData.journey.images }} steps={journey} />
+      <CareJourney
+        data={{ ...journeyCopy, images: homeData.journey.images, stepLabel: homeData.journey.stepLabel }}
+        steps={journey}
+      />
       <CtaBand title={cta.title} description={cta.description} primary={cta.primary} />
     </>
   );

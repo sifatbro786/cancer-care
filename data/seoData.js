@@ -60,4 +60,16 @@ export const seoData = {
     description: "Call, WhatsApp or visit our chamber in Kafrul, Dhaka Cantonment. Send us a message any time.",
     path: "/contact",
   },
+  privacy: {
+    title: "Privacy Policy",
+    description:
+      "How Cancer Care & Medical Services collects, uses and protects information from appointments, medicine orders, prescriptions and messages.",
+    path: "/privacy-policy",
+  },
+  terms: {
+    title: "Terms of Use",
+    description:
+      "Terms for using the Cancer Care & Medical Services website, booking appointments, online consultations and ordering medicines.",
+    path: "/terms",
+  },
 };

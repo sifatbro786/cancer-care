@@ -45,7 +45,7 @@ export default async function AppointmentPage({ params }) {
           {!a.emailed ? <NotEmailedFlag /> : null}
         </div>
         <p className="text-ink-soft">
-          {formatIsoDay(a.date)} · <span className="font-serif text-xl text-brand-700">{formatSlot(a.slot)}</span> · {A.type[a.type]}
+          {formatIsoDay(a.date)} · <span className="font-display text-xl font-semibold text-brand-700 tabular-nums">{formatSlot(a.slot)}</span> · {A.type[a.type]}
         </p>
         <ContactButtons phone={a.phone} email={a.email} name={a.name} />
       </header>

@@ -1,4 +1,4 @@
-import { Atkinson_Hyperlegible_Next, Newsreader, Onest } from "next/font/google";
+import { Atkinson_Hyperlegible_Next, Onest } from "next/font/google";
 import "./globals.css";
 import { buildRootMetadata } from "@/lib/seo";
 import { getSeoConfig } from "@/services/content";
@@ -23,14 +23,6 @@ const heading = Onest({
   display: "swap",
 });
 
-/* Editorial serif accent — italic words, pull quotes, numerals. Used sparingly. */
-const accent = Newsreader({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-accent",
-  display: "swap",
-});
-
 export async function generateMetadata() {
   return buildRootMetadata(await getSeoConfig());
 }
@@ -46,7 +38,7 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${body.variable} ${heading.variable} ${accent.variable}`}
+      className={`${body.variable} ${heading.variable}`}
     >
       <body className="flex min-h-dvh flex-col" suppressHydrationWarning>
         <a

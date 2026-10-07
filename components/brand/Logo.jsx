@@ -20,7 +20,7 @@ export default function Logo({ invert = false, className }) {
     <Link
       href="/"
       aria-label={`${siteConfig.name} — home`}
-      className={cn("inline-flex items-center gap-3 rounded-lg", className)}
+      className={cn("inline-flex shrink-0 items-center gap-3 rounded-lg whitespace-nowrap", className)}
     >
       <LogoMark />
       <span className="flex flex-col leading-none">

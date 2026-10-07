@@ -43,7 +43,7 @@ export default async function OverviewPage({ searchParams }) {
             const body = (
               <>
                 <span className="font-semibold text-ink">{c.label}</span>
-                <span className={cn("font-serif text-5xl leading-none", flagged ? "text-alert-700" : "text-brand-700")}>
+                <span className={cn("font-display text-5xl leading-none font-semibold tracking-tight tabular-nums", flagged ? "text-alert-700" : "text-brand-700")}>
                   {value}
                 </span>
                 <span className="text-sm text-ink-muted">{c.hint}</span>
@@ -75,7 +75,7 @@ export default async function OverviewPage({ searchParams }) {
         <section aria-labelledby="today-heading" className="mt-12">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="today-heading" className="text-2xl font-semibold">
-              {A.today.heading} <span className="font-serif text-xl font-normal text-ink-muted italic">{formatIsoDay(today.day)}</span>
+              {A.today.heading} <span className="font-display text-xl font-normal text-ink-muted">{formatIsoDay(today.day)}</span>
             </h2>
             <Link href="/admin/appointments" className="text-sm font-semibold text-brand-700 hover:text-brand-900">
               {A.today.all} →
@@ -89,7 +89,7 @@ export default async function OverviewPage({ searchParams }) {
                     href={`/admin/appointments/${a.id}`}
                     className="flex items-center gap-4 px-5 py-3.5 hover:bg-paper focus-visible:outline-2 focus-visible:outline-brand-500"
                   >
-                    <span className="w-20 shrink-0 font-serif text-lg text-brand-700">{formatSlot(a.slot)}</span>
+                    <span className="w-20 shrink-0 font-display text-lg font-semibold text-brand-700 tabular-nums">{formatSlot(a.slot)}</span>
                     <span className="min-w-0 flex-1 truncate font-semibold">{a.name}</span>
                     <span className="hidden text-sm text-ink-muted sm:inline">{A.type[a.type]}</span>
                     <StatusPill status={a.status} label={A.status[a.status]} />

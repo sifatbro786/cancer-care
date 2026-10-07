@@ -137,7 +137,7 @@ export default async function PatientGuidePage() {
                     href={`#${s.id}`}
                     className="-ml-px block border-l-2 border-transparent py-1.5 pl-4 text-ink-soft transition-colors hover:border-brand-500 hover:text-ink"
                   >
-                    <span className="mr-2 font-serif text-brand-600 italic">{i + 1}.</span>
+                    <span className="mr-2 font-display font-semibold text-brand-600 tabular-nums">{i + 1}.</span>
                     {s.title}
                   </a>
                 </li>

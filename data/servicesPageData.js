@@ -3,7 +3,7 @@ export const servicesPageData = {
   header: {
     eyebrow: "Services",
     title: "Oncology care, from diagnosis to recovery",
-    highlight: "to recovery",
+    highlight: "from diagnosis to recovery",
     description:
       "Four services that work together — so you are not left coordinating between a chamber, a hospital and a pharmacy on your own.",
   },
@@ -18,7 +18,7 @@ export const servicesPageData = {
   journey: {
     eyebrow: "The process",
     title: "From the first call to the first treatment",
-    highlight: "first treatment",
+    highlight: "the first treatment",
   },
   cta: {
     title: "Not sure which service you need?",

@@ -6,6 +6,7 @@ import {
   getCareJourney,
   getDoctor,
   getFaqs,
+  getProducts,
   getSeoConfig,
   getServices,
   getTestimonials,
@@ -15,6 +16,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import HeroSection from "@/components/home/HeroSection";
 import InfoStrip from "@/components/home/InfoStrip";
 import IntroStatement from "@/components/home/IntroStatement";
+import MedicineShopSection from "@/components/home/MedicineShopSection";
 import DoctorOverview from "@/components/home/DoctorOverview";
 import ServicesGrid from "@/components/home/ServicesGrid";
 import CareJourney from "@/components/home/CareJourney";
@@ -30,7 +32,7 @@ export async function generateMetadata() {
 
 export default async function HomePage() {
   // Independent reads run in parallel — same pattern once these hit the database.
-  const [doctor, services, journey, testimonials, posts, categories, faqs, home] = await Promise.all([
+  const [doctor, services, journey, testimonials, posts, categories, faqs, products, home] = await Promise.all([
     getDoctor(),
     getServices(),
     getCareJourney(),
@@ -38,6 +40,7 @@ export default async function HomePage() {
     getBlogs({ featuredOnly: true, limit: 3 }),
     getBlogCategories(),
     getFaqs(),
+    getProducts(),
     withSlots(homeData), // admin-uploaded images replace Unsplash defaults
   ]);
 
@@ -46,6 +49,7 @@ export default async function HomePage() {
       <HeroSection data={home.hero} />
       <InfoStrip data={home.infoStrip} />
       <IntroStatement data={home.intro} stats={doctor.stats} />
+      <MedicineShopSection data={home.shop} products={products} />
       <DoctorOverview data={home.doctor} doctor={doctor} />
       <ServicesGrid data={home.services} services={services} />
       <CareJourney data={home.journey} steps={journey} />

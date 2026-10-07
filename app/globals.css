@@ -9,8 +9,6 @@
   /* Typography (CSS variables are injected by next/font in layout.jsx) */
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-heading), var(--font-body), ui-sans-serif, sans-serif;
-  /* Editorial serif — used sparingly (accent words, pull quotes, numerals) */
-  --font-serif: var(--font-accent), Georgia, "Times New Roman", serif;
 
   /* Brand — soft clinical teal. 600 is the primary (6.1:1 on white). */
   --color-brand-50: #eef7f5;
@@ -40,6 +38,8 @@
   --color-ink: #1c2b2c;
   --color-ink-soft: #4a5a5c;
   --color-ink-muted: #5c6b6d;
+  /* Quiet half of two-tone headlines — 4.3:1 on paper/white (AA for large text) */
+  --color-ink-quiet: #6c7a7b;
   --color-paper: #faf8f4;
   --color-paper-deep: #f2eee6;
   --color-mist: #e9f1f0;

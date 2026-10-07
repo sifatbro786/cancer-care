@@ -46,7 +46,7 @@ export default function DoctorOverview({ data, doctor }) {
           <h2 id="doctor-title" className="mt-5 text-4xl leading-[1.08] font-semibold tracking-[-0.025em] sm:text-5xl">
             {doctor.name}
           </h2>
-          <p className="mt-3 font-serif text-xl text-brand-700 italic">{doctor.shortTitle}</p>
+          <p className="mt-3 font-display text-lg font-medium text-brand-700">{doctor.shortTitle}</p>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">{doctor.summary}</p>
 
           <dl className="mt-10 divide-y divide-line border-y border-line">
@@ -59,7 +59,7 @@ export default function DoctorOverview({ data, doctor }) {
           </dl>
 
           <blockquote className="mt-10 max-w-xl border-l-2 border-brand-500 pl-6">
-            <p className="font-serif text-2xl leading-snug text-ink italic">“{doctor.philosophy.quote}”</p>
+            <p className="font-display text-2xl leading-snug font-medium tracking-[-0.01em] text-ink">“{doctor.philosophy.quote}”</p>
             <footer className="mt-3 text-sm text-ink-muted">{doctor.philosophy.signature}</footer>
           </blockquote>
 

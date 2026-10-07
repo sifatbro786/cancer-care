@@ -7,7 +7,7 @@ Key rules in short:
 - Backend is built inside this Next.js app (Route Handlers / Server Actions). No Express, no external API.
 - Node.js 24.
 - Copy lives in `data/`; pages read data through `services/content.js`.
-- No orange/coral, no stickers/tape/hand-drawn lines. Editorial serif accent (`AccentText`) instead.
+- No orange/coral, no stickers/tape/hand-drawn lines, no serif italic accents. Two-tone headlines (`AccentText`) instead.
 - Explain each completed phase to the owner in Bangla, then update `PROJECT_STATUS.md`.
 - Next.js 16 has breaking changes — check `node_modules/next/dist/docs/` before using an API.
 

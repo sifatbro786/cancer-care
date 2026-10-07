@@ -6,6 +6,7 @@ import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown, Clock, MapPin, Phone, X } from "lucide-react";
 import { whatsappLink } from "@/lib/site";
 import { useSite } from "@/components/providers/SiteProvider";
+import { IconByKey } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/brand/Logo";
 import Button from "@/components/ui/Button";
@@ -137,10 +138,13 @@ export default function MobileNav({ open, onClose, pathname }) {
                       onClick={onClose}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "block rounded-xl px-4 py-3.5 text-lg font-medium",
+                        "flex items-center gap-2.5 rounded-xl px-4 py-3.5 text-lg font-medium",
                         active ? "bg-brand-50 text-brand-800" : "text-ink hover:bg-white"
                       )}
                     >
+                      {item.icon ? (
+                        <IconByKey name={item.icon} aria-hidden="true" className="size-5 text-brand-600" />
+                      ) : null}
                       {item.label}
                     </Link>
                   </li>

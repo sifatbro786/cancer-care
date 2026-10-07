@@ -222,7 +222,7 @@ export const cmsData = {
           title: "Footer",
           fields: [
             { name: "footer.about", type: "textarea", label: "About text", max: 600, width: "full" },
-            { name: "footer.disclaimer", type: "textarea", label: "Medical disclaimer", max: 600, width: "full" },
+            { name: "footer.disclaimer", type: "textarea", label: "Medical disclaimer", max: 600, width: "full", hint: "Shown as a note in the “Medical information” section of the Terms of Use page." },
           ],
         },
         {
@@ -571,6 +571,8 @@ export const cmsData = {
         blog: "Blog",
         patientGuide: "Patient guide",
         contact: "Contact",
+        privacy: "Privacy policy",
+        terms: "Terms of use",
       },
       sections: [
         {

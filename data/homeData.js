@@ -9,7 +9,7 @@ export const homeData = {
   hero: {
     eyebrow: "Day Care Chemotherapy · Chamber · Telemedicine",
     title: "Chemotherapy and cancer care, close to home in Dhaka",
-    highlight: "close to home",
+    highlight: "close to home in Dhaka",
     description:
       "Specialised oncology consultation, safe same-day chemotherapy and genuine medicine support — guided by an experienced oncologist who takes the time to explain.",
     primaryCta: { label: "Book Consultation", href: "/appointment" },
@@ -61,6 +61,28 @@ export const homeData = {
     image: media.careHands,
   },
 
+  /** Medicine shop highlight — second business priority, sits right after the intro. */
+  shop: {
+    eyebrow: "Medicine shop",
+    title: "Genuine oncology medicines, delivered to your door",
+    highlight: "delivered to your door",
+    description:
+      "Order prescribed cancer medicines and supportive care from the same team that treats you — checked by our pharmacist before anything leaves the chamber.",
+    steps: [
+      { icon: "clipboard", title: "Upload your prescription", text: "A clear photo or PDF is enough." },
+      { icon: "shield", title: "Pharmacist verifies & calls", text: "We confirm medicine, price and dose." },
+      { icon: "truck", title: "Delivered in 24–48 hours", text: "Inside Dhaka · cash on delivery." },
+    ],
+    primaryCta: { label: "Upload prescription", href: "/shop?upload=1" },
+    secondaryCta: { label: "Browse all medicines", href: "/shop" },
+    productsHeading: "Frequently ordered",
+    // Products shown on the homepage, in this order. Missing / out-of-stock slugs are skipped
+    // and the list is topped up from the catalogue, so this never renders empty.
+    featuredSlugs: ["capecitabine-500mg", "ondansetron-8mg", "filgrastim-300mcg-injection", "oral-nutrition-supplement-vanilla"],
+    rxLabel: "Rx",
+    rxTitle: "Prescription required",
+  },
+
   doctor: {
     eyebrow: "Meet your oncologist",
     cta: { label: "Read full profile", href: "/about" },
@@ -86,14 +108,15 @@ export const homeData = {
   journey: {
     eyebrow: "How it works",
     title: "From the first call to the first treatment",
-    highlight: "first treatment",
+    highlight: "the first treatment",
+    stepLabel: "Step",
     images: [media.reportReview, media.consultation, media.pharmacy],
   },
 
   testimonials: {
     eyebrow: "Patient & family stories",
     title: "What families tell us",
-    highlight: "families",
+    highlight: "tell us",
     facebookCta: { label: "Read more on Facebook" },
     ratingLabel: "average rating",
     reviewsLabel: "reviews on",
@@ -113,7 +136,7 @@ export const homeData = {
   blog: {
     eyebrow: "Health & awareness",
     title: "Reading for patients and caregivers",
-    highlight: "caregivers",
+    highlight: "for patients and caregivers",
     cta: { label: "All articles", href: "/blog" },
     readLabel: "Read article",
     minLabel: "min read",
@@ -122,7 +145,7 @@ export const homeData = {
   faq: {
     eyebrow: "Questions, answered",
     title: "Questions families ask us",
-    highlight: "ask us",
+    highlight: "families ask us",
     description: "Can't find your answer? Call or WhatsApp us — a real person will reply.",
   },
 

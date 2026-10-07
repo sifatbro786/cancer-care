@@ -7,7 +7,7 @@ export const appointmentData = {
   header: {
     eyebrow: "Book an appointment",
     title: "Book a visit in about two minutes",
-    highlight: "two minutes",
+    highlight: "in about two minutes",
     description:
       "Choose a chamber visit or an online consultation, pick a time that suits you, and we'll call to confirm. No payment is taken online.",
   },

@@ -108,11 +108,30 @@ export default async function Footer() {
       </div>
 
       <div className="relative border-t border-white/10">
-        <div className="container-site flex flex-col gap-3 py-6 text-sm text-brand-100/75 md:flex-row md:items-center md:justify-between">
+        <div className="container-site flex flex-col gap-4 py-6 text-sm text-brand-100/75 md:flex-row md:items-center md:justify-between">
           <p>
-            © {year} {name}. All rights reserved.
+            © {year} {name}. {footer.rights}{" "}
+            <span className="block sm:inline">
+              {footer.credit.prefix}{" "}
+              <a
+                href={footer.credit.href}
+                target="_blank"
+                rel="noopener"
+                className="font-semibold text-white underline decoration-white/30 underline-offset-4 transition-colors hover:decoration-white"
+              >
+                {footer.credit.label}
+              </a>
+            </span>
           </p>
-          <p className="max-w-2xl md:text-right">{footer.disclaimer}</p>
+          <ul aria-label="Legal" className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            {footer.legal.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="transition-colors hover:text-white hover:underline hover:underline-offset-4">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </footer>

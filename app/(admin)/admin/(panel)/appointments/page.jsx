@@ -23,7 +23,7 @@ export default async function AppointmentsPage({ searchParams }) {
           <Link href={`/admin/appointments/${a.id}`} className={rowClass}>
             <div className="sm:w-48 sm:shrink-0">
               <p className="font-semibold text-ink">{formatIsoDay(a.date)}</p>
-              <p className="font-serif text-xl text-brand-700">{formatSlot(a.slot)}</p>
+              <p className="font-display text-xl font-semibold text-brand-700 tabular-nums">{formatSlot(a.slot)}</p>
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate font-semibold">{a.name}</p>

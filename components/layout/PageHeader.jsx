@@ -9,7 +9,7 @@ import JsonLd from "@/components/seo/JsonLd";
 
 /**
  * Inner-page header: breadcrumb (+ BreadcrumbList JSON-LD), eyebrow, H1 with
- * serif accent, lead paragraph and an optional portrait-crop image.
+ * two-tone accent, lead paragraph and an optional portrait-crop image.
  * `crumbs` = [{ label, href }] — the last item is the current page.
  */
 export default function PageHeader({ crumbs, eyebrow, title, highlight, description, image, children }) {
@@ -48,7 +48,7 @@ export default function PageHeader({ crumbs, eyebrow, title, highlight, descript
 
           <Eyebrow className="mt-10">{eyebrow}</Eyebrow>
           <h1 className="mt-5 text-4xl leading-[1.06] font-semibold tracking-[-0.03em] sm:text-5xl lg:text-[3.6rem]">
-            <AccentText text={title} accent={highlight} className="text-brand-700" />
+            <AccentText text={title} accent={highlight} />
           </h1>
           {description ? <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">{description}</p> : null}
           {children}

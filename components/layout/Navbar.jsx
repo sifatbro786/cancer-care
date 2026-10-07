@@ -62,7 +62,7 @@ function Dropdown({ item, active }) {
           setOpen((v) => !v);
         }}
         className={cn(
-          "inline-flex h-11 items-center gap-1 rounded-lg px-3 text-[0.95rem] font-medium transition-colors",
+          "inline-flex h-11 items-center gap-1 rounded-lg px-2.5 text-[0.95rem] font-medium whitespace-nowrap transition-colors xl:px-3",
           active ? "text-brand-700" : "text-ink-soft hover:text-ink"
         )}
       >
@@ -154,15 +154,25 @@ export default function Navbar() {
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "relative inline-flex h-11 items-center rounded-lg px-3 text-[0.95rem] font-medium transition-colors",
+                      "relative inline-flex h-11 items-center rounded-lg px-2.5 text-[0.95rem] font-medium whitespace-nowrap transition-colors xl:px-3",
                       active ? "text-brand-700" : "text-ink-soft hover:text-ink"
                     )}
                   >
-                    {item.label}
+                    {item.icon ? (
+                      <IconByKey name={item.icon} aria-hidden="true" className="mr-1.5 size-4 text-brand-600" />
+                    ) : null}
+                    {item.shortLabel ? (
+                      <>
+                        <span className="xl:hidden">{item.shortLabel}</span>
+                        <span className="hidden xl:inline">{item.label}</span>
+                      </>
+                    ) : (
+                      item.label
+                    )}
                     {active ? (
                       <span
                         aria-hidden="true"
-                        className="absolute inset-x-3 bottom-1.5 h-0.5 rounded-full bg-brand-500"
+                        className="absolute inset-x-2.5 bottom-1.5 xl:inset-x-3 h-0.5 rounded-full bg-brand-500"
                       />
                     ) : null}
                   </Link>
@@ -180,7 +190,8 @@ export default function Navbar() {
           >
             <Phone aria-hidden="true" className="size-5" />
           </a>
-          <Button href={cta.primary.href} withArrow className="hidden sm:inline-flex">
+          {/* lg–xl: 7 nav items leave no room for the CTA → phone button only (hero carries the CTA) */}
+          <Button href={cta.primary.href} withArrow className="hidden sm:inline-flex lg:hidden xl:inline-flex">
             {cta.primary.label}
           </Button>
           <button

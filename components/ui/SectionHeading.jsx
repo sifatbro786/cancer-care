@@ -17,7 +17,7 @@ export function Eyebrow({ children, invert = false, className }) {
 }
 
 /**
- * Section heading. `highlight` (a substring of `title`) is set in the serif italic.
+ * Section heading. `highlight` (a substring of `title`) is set one tone quieter (two-tone headline).
  * Heading level is configurable to keep the document outline valid.
  */
 export default function SectionHeading({
@@ -47,7 +47,7 @@ export default function SectionHeading({
           invert && "text-white"
         )}
       >
-        <AccentText text={title} accent={highlight} className={invert ? "text-brand-200" : "text-brand-700"} />
+        <AccentText text={title} accent={highlight} invert={invert} />
       </Heading>
       {description ? (
         <p className={cn("text-lg leading-relaxed", invert ? "text-brand-100" : "text-ink-soft")}>{description}</p>

@@ -9,7 +9,7 @@ export const patientGuideData = {
   header: {
     eyebrow: "Patient care guide",
     title: "A practical guide to getting through chemotherapy",
-    highlight: "getting through",
+    highlight: "getting through chemotherapy",
     description:
       "What to do before your session, how to manage common side effects at home, and when to call us. Print it, share it with your family, keep it on the fridge.",
     image: media.caregiver,

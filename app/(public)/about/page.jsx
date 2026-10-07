@@ -51,12 +51,12 @@ export default async function AboutPage() {
           </div>
           <Reveal className="space-y-6 text-lg leading-[1.8] text-ink lg:col-span-8">
             {doctor.bio.map((para, i) => (
-              <p key={i} className={i === 0 ? "first-letter:float-left first-letter:mr-3 first-letter:font-serif first-letter:text-6xl first-letter:leading-[0.9] first-letter:text-brand-700" : undefined}>
+              <p key={i}>
                 {para}
               </p>
             ))}
             <blockquote className="border-l-2 border-brand-500 pl-6">
-              <p className="font-serif text-2xl leading-snug italic">“{doctor.philosophy.quote}”</p>
+              <p className="font-display text-2xl leading-snug font-medium tracking-[-0.01em]">“{doctor.philosophy.quote}”</p>
             </blockquote>
           </Reveal>
         </div>
@@ -96,7 +96,7 @@ export default async function AboutPage() {
               {doctor.training.map((t) => (
                 <li key={t.title} className="relative">
                   <span aria-hidden="true" className="absolute top-2 -left-[2.3rem] size-2.5 rounded-full bg-brand-600 ring-4 ring-white" />
-                  <p className="font-serif text-xl text-brand-700 italic">{t.year}</p>
+                  <p className="font-display text-sm font-semibold tracking-[0.12em] text-brand-700 tabular-nums">{t.year}</p>
                   <p className="mt-1 font-display text-lg font-semibold">{t.title}</p>
                   {t.place && !t.place.startsWith("TODO") ? <p className="text-ink-soft">{t.place}</p> : null}
                 </li>

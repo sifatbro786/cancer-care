@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-06 · Current phase: **B1–B7 code done → owner verification (lint, build, smoke, E2E on the dev PC) → launch** (see 7-step plan below)_
+_Last updated: 2026-10-07 · Current phase: **B1–B7 code done → owner verification (lint, build, smoke, E2E on the dev PC) → launch** (see 7-step plan below)_
 
 ---
 
@@ -212,10 +212,15 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.
 ## Design rules (owner feedback — important)
 - ❌ **No orange / coral** anywhere. Palette = teal (`brand`), sage, warm slate (`ink`), paper. `alert` red only for warnings/errors.
 - ❌ No tape stickers, no hand-drawn underlines, no handwritten (Caveat) font, no chart-grid backgrounds, no ECG/pulse-line decorations, no ✦ sparkles, no decorative blobs.
-- ✅ Editorial, human-made feel: **serif italic accent word** (Newsreader) via `AccentText`, hairline rules, typographic tables (`<dl>`), real photography, calm spacing.
+- ❌ **No serif italic accent words** (owner, 2026-10-07: looked AI-generated). Newsreader font removed.
+- ✅ Editorial, human-made feel: **two-tone headlines** via `AccentText` — the `highlight` (best as the trailing clause) is the same font/weight in `ink-quiet` (`text-white/60` on dark, `invert`), hairline rules, typographic tables (`<dl>`), real photography, calm spacing.
+- Numerals / step labels: Onest semibold `tabular-nums` (no serif numerals).
+- Steppers: straight connector between markers in the empty band below the photos (`CareJourney`), never an SVG curve behind images.
+- Hero must fit the first screen on desktop (`lg:h-[clamp(28rem,calc(100svh-9.75rem),40rem)]`).
+- Medicine shop = 2nd business priority: nav item right after Services (pill icon), homepage section right after the intro.
 - Eyebrow = plain uppercase label, **no rule/icon before it** (`Eyebrow` in `SectionHeading.jsx`).
 - Follow the CliniCore reference layout structure, not its colours.
-- Fonts: Onest (headings), Atkinson Hyperlegible Next (body), Newsreader (serif accent).
+- Fonts: Onest (headings), Atkinson Hyperlegible Next (body). No third font.
 
 ## Placeholders awaiting the client (`// TODO(client)`)
 Doctor's real name, degrees, BMDC number, training places, official email, Facebook/YouTube URLs, exact map pin, real clinic photos.
@@ -243,3 +248,4 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **B5:** config-driven content CMS (9 editors, block editor, media picker, reorder, approve), zod on every save, cache-tag revalidation, live site settings on the public site.
 - **B6:** admin-editable SEO (per page, defaults, per article/medicine, noindex, share images), user management with one-time temporary passwords and last-super-admin guard, append-only audit log + viewer.
 - **B7:** authz review, strict CSRF for admin writes/downloads, admin framing CSP, race-safe last-super-admin, structured error logging, CSV exports with formula guard, `npm run smoke`, README admin guide. Next: owner verification → launch.
+- **Design pass (2026-10-07):** serif-italic accents → two-tone headlines site-wide (Newsreader dropped); hero fits the first screen (smaller H1, viewport-clamped height, proof card xl+ only); homepage Medicine Shop section (`MedicineShopSection`, featured slugs in `homeData.shop`, in-stock only, 4 products) + nav "Medicine Shop" after Services (lg shows "Shop" + phone icon only, CTA at xl); CareJourney rebuilt as a stepper with straight badge-to-badge connector; `/privacy-policy` + `/terms` (`data/legalData.js`, `components/legal/LegalDocument.jsx`, SEO keys `privacy`/`terms`, sitemap); footer bar: © + "Developed by STR Solutions LTD" (strsltd.com) + legal links — medical disclaimer moved into Terms → Medical information (still editable in Admin → Site settings). Run `npm run seed` once so the two new pages appear in Admin → Search & sharing. TODO(client): legal review of both pages.

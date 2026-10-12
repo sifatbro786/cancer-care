@@ -8,14 +8,14 @@ export async function getOverviewCounts() {
   await connectDB();
 
   const notEmailed = { "notification.clinicEmailed": false };
-  const [appointments, prescriptions, messages, ...unsent] = await Promise.all([
+  const [appointments, orders, messages, ...unsent] = await Promise.all([
     Appointment.countDocuments({ status: "new" }),
-    Order.countDocuments({ "prescription.status": "pending" }),
+    Order.countDocuments({ status: "new" }),
     Message.countDocuments({ status: "unread" }),
     Appointment.countDocuments(notEmailed),
     Order.countDocuments(notEmailed),
     Message.countDocuments(notEmailed),
   ]);
 
-  return { appointments, prescriptions, messages, unsent: unsent.reduce((a, b) => a + b, 0) };
+  return { appointments, orders, messages, unsent: unsent.reduce((a, b) => a + b, 0) };
 }

@@ -10,12 +10,12 @@ import InboxLayout, { listParams, rowClass } from "@/components/admin/inbox/Inbo
 import { NotEmailedFlag, StatusPill } from "@/components/admin/inbox/bits";
 
 const O = inboxData.orders;
-const RX_TONE = { pending: "alert", verified: "sage", rejected: "muted", not_required: "muted" };
+const P = O.payment;
 export const metadata = { title: O.meta.title };
 
 export default async function OrdersPage({ searchParams }) {
   await requireUser(PERMISSIONS.inboxRead);
-  const { tab, q, page } = listParams(await searchParams, ORDER_TAB_KEYS, "rx");
+  const { tab, q, page } = listParams(await searchParams, ORDER_TAB_KEYS, "new");
   const data = isDbConfigured() ? await listOrders({ tab, q, page }) : null;
 
   return (
@@ -31,9 +31,7 @@ export default async function OrdersPage({ searchParams }) {
               <p className="truncate font-semibold">{o.name}</p>
               <p className="text-sm text-ink-muted">{o.phone}</p>
               <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-ink-soft">
-                {o.items.length
-                  ? o.items.map((i) => `${i.name} × ${i.quantity}`).join(", ")
-                  : O.detail.generalRx}
+                {o.items.length ? o.items.map((i) => `${i.name} × ${i.quantity}`).join(", ") : O.detail.noItems}
                 {o.items.some((i) => i.coldChain) ? (
                   <Snowflake aria-label={O.detail.coldChain} className="size-3.5 shrink-0 text-brand-600" />
                 ) : null}
@@ -42,9 +40,11 @@ export default async function OrdersPage({ searchParams }) {
             <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
               {o.subtotal ? <span className="font-semibold tabular-nums">{formatBDT(o.subtotal)}</span> : null}
               <StatusPill status={o.status} label={O.status[o.status]} />
-              {o.rxStatus !== "not_required" ? (
-                <StatusPill status={o.rxStatus} label={`Rx: ${O.rx.status[o.rxStatus]}`} tone={RX_TONE[o.rxStatus]} />
-              ) : null}
+              <StatusPill
+                status={o.payment.status}
+                label={P.pill(P.method[o.payment.method], P.status[o.payment.status])}
+                tone={P.tone[o.payment.status]}
+              />
               {!o.emailed ? <NotEmailedFlag /> : null}
             </div>
           </Link>

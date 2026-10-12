@@ -1,16 +1,16 @@
 import Link from "next/link";
-import { FileText } from "lucide-react";
 import { IconByKey } from "@/lib/icons";
 import { discountPercent, formatBDT } from "@/lib/utils";
+import { canOrder } from "@/lib/shop";
 import { Eyebrow } from "@/components/ui/SectionHeading";
 import AccentText from "@/components/ui/AccentText";
 import Button from "@/components/ui/Button";
 import SmartImage from "@/components/ui/SmartImage";
 import Reveal from "@/components/motion/Reveal";
 
-/** Featured slugs first (in order), then top up from the catalogue — in-stock only. */
+/** Featured slugs first (in order), then top up from the catalogue — orderable only (in stock, not expired). */
 function pickProducts(products, slugs, count = 4) {
-  const available = products.filter((p) => p.inStock);
+  const available = products.filter((p) => canOrder(p));
   const bySlug = new Map(available.map((p) => [p.slug, p]));
   const picked = slugs.map((s) => bySlug.get(s)).filter(Boolean);
   for (const p of available) {
@@ -20,7 +20,7 @@ function pickProducts(products, slugs, count = 4) {
   return picked.slice(0, count);
 }
 
-function MiniProduct({ product: p, rxLabel, rxTitle }) {
+function MiniProduct({ product: p }) {
   const off = discountPercent(p.price, p.mrp);
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-line transition-shadow hover:shadow-lift">
@@ -32,16 +32,6 @@ function MiniProduct({ product: p, rxLabel, rxTitle }) {
           sizes="(min-width: 1024px) 20rem, (min-width: 640px) 45vw, 100vw"
           className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
         />
-        {p.requiresPrescription ? (
-          <span
-            title={rxTitle}
-            className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-xs font-semibold text-ink ring-1 ring-line"
-          >
-            <FileText aria-hidden="true" className="size-3 text-brand-700" />
-            {rxLabel}
-            <span className="sr-only">— {rxTitle}</span>
-          </span>
-        ) : null}
       </div>
       <div className="flex flex-1 flex-col p-4">
         <p className="truncate text-xs text-ink-muted">{p.generic}</p>
@@ -117,7 +107,7 @@ export default function MedicineShopSection({ data, products }) {
               <ul className="mt-4 grid gap-4 sm:grid-cols-2">
                 {featured.map((p) => (
                   <li key={p.id ?? p.slug}>
-                    <MiniProduct product={p} rxLabel={data.rxLabel} rxTitle={data.rxTitle} />
+                    <MiniProduct product={p} />
                   </li>
                 ))}
               </ul>

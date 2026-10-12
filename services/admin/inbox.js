@@ -8,8 +8,6 @@ import {
   canTransition,
   MESSAGE_FLOW,
   ORDER_FLOW,
-  orderBlockedReason,
-  PRESCRIPTION_REVIEW,
 } from "@/lib/inbox/workflow";
 
 /**
@@ -66,7 +64,7 @@ async function countTabs(Model, tabs) {
 
 /** Resolve user ids in notes / history to display names (one query). */
 async function withAuthors(doc) {
-  const ids = [...(doc.notes ?? []), ...(doc.statusHistory ?? []), ...(doc.prescription?.reviewedBy ? [{ by: doc.prescription.reviewedBy }] : [])]
+  const ids = [...(doc.notes ?? []), ...(doc.statusHistory ?? []), ...(doc.payment?.receivedBy ? [{ by: doc.payment.receivedBy }] : [])]
     .map((x) => x.by)
     .filter(Boolean)
     .map(String);
@@ -77,7 +75,7 @@ async function withAuthors(doc) {
   return {
     notes: (doc.notes ?? []).map(by).reverse(), // newest first
     history: (doc.statusHistory ?? []).map(by),
-    reviewer: doc.prescription?.reviewedBy ? names.get(String(doc.prescription.reviewedBy)) ?? null : null,
+    receiver: doc.payment?.receivedBy ? names.get(String(doc.payment.receivedBy)) ?? null : null,
   };
 }
 
@@ -162,8 +160,7 @@ export async function todaysAppointments() {
 /* ── orders ──────────────────────────────────────────────────────── */
 
 const ORDER_TABS = {
-  rx: { filter: { "prescription.status": "pending" }, sort: { createdAt: 1, _id: 1 } }, // oldest first — a queue
-  new: { filter: { status: "new" }, sort: { createdAt: -1, _id: -1 } },
+  new: { filter: { status: "new" }, sort: { createdAt: 1, _id: 1 } }, // oldest first — a call queue
   processing: { filter: { status: "processing" }, sort: { createdAt: -1, _id: -1 } },
   dispatched: { filter: { status: "dispatched" }, sort: { createdAt: -1, _id: -1 } },
   delivered: { filter: { status: "delivered" }, sort: { createdAt: -1, _id: -1 } },
@@ -187,16 +184,18 @@ const orderRow = (o) => ({
   name: o.customer?.name,
   phone: o.customer?.phone,
   status: o.status,
-  rxRequired: Boolean(o.prescription?.required),
-  rxStatus: o.prescription?.status ?? "not_required",
-  hasFile: Boolean(o.prescription?.file?.path),
+  payment: {
+    method: o.payment?.method ?? "offline",
+    status: o.payment?.status ?? "unpaid",
+    amount: o.payment?.amount ?? o.subtotal ?? 0,
+  },
   emailed: o.notification?.clinicEmailed !== false,
   createdAt: o.createdAt?.toISOString(),
 });
 
-export async function listOrders({ tab = "rx", q, page } = {}) {
+export async function listOrders({ tab = "new", q, page } = {}) {
   await connectDB();
-  const t = ORDER_TABS[tab] ?? ORDER_TABS.rx;
+  const t = ORDER_TABS[tab] ?? ORDER_TABS.new;
   const filter = { ...t.filter, ...searchFilter(q, { name: "customer.name", phone: "customer.phone" }) };
   const [list, counts] = await Promise.all([paginate(Order, filter, t.sort, page, orderRow), countTabs(Order, ORDER_TABS)]);
   return { ...list, counts };
@@ -207,15 +206,23 @@ export async function getOrder(id) {
   await connectDB();
   const o = await Order.findById(id).lean();
   if (!o) return null;
-  const { notes, history, reviewer } = await withAuthors(o);
+  const { notes, history, receiver } = await withAuthors(o);
+  const p = o.payment ?? {};
+  const lastSession = p.sessions?.at(-1);
   return {
     ...orderRow(o),
     address: o.customer?.address,
     note: o.note ?? "",
-    file: o.prescription?.file ? { mime: o.prescription.file.mime, size: o.prescription.file.size } : null,
-    reviewedAt: o.prescription?.reviewedAt?.toISOString() ?? null,
-    reviewer,
-    rejectReason: o.prescription?.rejectReason ?? "",
+    payment: {
+      ...orderRow(o).payment,
+      trxId: p.trxId ?? null,
+      payer: p.payer ?? null,
+      paidAt: p.paidAt?.toISOString() ?? null,
+      receivedBy: receiver,
+      gatewayRef: lastSession?.gatewayRef ?? null,
+      attempts: p.attempts ?? 0,
+      lastError: p.lastError ?? null,
+    },
     notes,
     history,
   };
@@ -224,11 +231,6 @@ export async function getOrder(id) {
 export async function transitionOrder({ id, from, to, userId, note }) {
   if (!isValidObjectId(id) || !canTransition(ORDER_FLOW, from, to)) return { ok: false, code: "invalid" };
   await connectDB();
-  const order = await Order.findById(id).select("status prescription").lean();
-  if (!order) return { ok: false, code: "notFound" };
-  const blocked = orderBlockedReason(order, to);
-  if (blocked) return { ok: false, code: blocked };
-
   const now = new Date();
   const push = { statusHistory: { status: to, by: userId, at: now } };
   if (note) push.notes = { text: note, by: userId, at: now };
@@ -236,35 +238,25 @@ export async function transitionOrder({ id, from, to, userId, note }) {
 }
 
 /**
- * Pharmacist decision. Rejecting a REQUIRED prescription also cancels the order
- * (it could never be dispatched). The reason is kept on the order and in the notes.
+ * Staff record a payment taken outside the website (cash on delivery, at the chamber,
+ * or a manual bKash / Nagad transfer) — or confirm one flagged for review.
+ * Conditional on "not already paid" so two staff can't record it twice.
  */
-export async function reviewPrescription({ id, decision, reason, userId }) {
-  if (!isValidObjectId(id) || !canTransition(PRESCRIPTION_REVIEW, "pending", decision)) {
-    return { ok: false, code: "invalid" };
-  }
+export async function recordPayment({ id, method, trxId, userId }) {
+  if (!isValidObjectId(id)) return { ok: false, code: "invalid" };
   await connectDB();
-  const now = new Date();
   const set = {
-    "prescription.status": decision,
-    "prescription.reviewedBy": userId,
-    "prescription.reviewedAt": now,
+    "payment.status": "paid",
+    "payment.method": method,
+    "payment.paidAt": new Date(),
+    "payment.receivedBy": userId,
   };
-  if (decision === "rejected") set["prescription.rejectReason"] = reason;
-
+  if (trxId) set["payment.trxId"] = trxId;
   const res = await Order.updateOne(
-    { _id: id, "prescription.status": "pending" },
-    { $set: set, ...(reason ? { $push: { notes: { text: reason, by: userId, at: now } } } : {}) }
+    { _id: id, status: trusted({ $ne: "cancelled" }), "payment.status": trusted({ $ne: "paid" }) },
+    { $set: set, $unset: { "payment.lastError": 1 } }
   );
-  if (!res.matchedCount) return { ok: false, code: "conflict" };
-
-  if (decision === "rejected") {
-    await Order.updateOne(
-      { _id: id, "prescription.required": true, status: trusted({ $in: ["new", "processing"] }) },
-      { $set: { status: "cancelled" }, $push: { statusHistory: { status: "cancelled", by: userId, at: now } } }
-    );
-  }
-  return { ok: true };
+  return conflictOr(res);
 }
 
 /* ── messages ────────────────────────────────────────────────────── */
@@ -346,7 +338,7 @@ export async function getInboxBadges() {
   await connectDB();
   const [appointments, orders, messages] = await Promise.all([
     Appointment.countDocuments({ status: "new" }),
-    Order.countDocuments({ "prescription.status": "pending" }),
+    Order.countDocuments({ status: "new" }),
     Message.countDocuments({ status: "unread" }),
   ]);
   return { appointments, orders, messages };

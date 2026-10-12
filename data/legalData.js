@@ -1,7 +1,7 @@
 /**
  * Privacy Policy & Terms of Use copy.
  * Written to match how this site actually handles data (forms → database +
- * email, prescriptions in private storage, admin-only session cookie, no
+ * email, bKash / Nagad payments, admin-only session cookie, no
  * analytics or advertising trackers). If any of that changes, update here.
  *
  * TODO(client): have these reviewed by the clinic's legal adviser before launch,
@@ -26,7 +26,7 @@ export const legalData = {
     highlight: "Policy",
     description:
       "What we collect when you book, order medicines or contact us, why we need it, and how we keep it safe. Written in plain language.",
-    updated: "2026-10-07",
+    updated: "2026-10-12",
     sections: [
       {
         id: "who-we-are",
@@ -45,7 +45,8 @@ export const legalData = {
           {
             list: [
               "Appointment requests — patient name, mobile number, optional email and age, visit type, preferred date and time, and any note you add.",
-              "Medicine orders — name, mobile number, delivery address, the medicines and quantity, and your prescription (photo or PDF) when one is required.",
+              "Medicine orders — name, mobile number, delivery address, the medicines and quantity, and how you chose to pay.",
+              "Online payments — the payment reference and transaction ID that bKash or Nagad send back to us, and the wallet number they report. Your PIN and OTP are entered only on bKash's or Nagad's own page; we never see or store them.",
               "Contact messages — your name, phone or email, and your message.",
               "Basic technical data — your IP address is used briefly to block spam and repeated form submissions.",
             ],
@@ -62,7 +63,7 @@ export const legalData = {
           {
             list: [
               "To confirm and manage your appointment, usually by phone.",
-              "To check your prescription, prepare your medicines and arrange delivery.",
+              "To confirm your order, prepare your medicines, take payment and arrange delivery.",
               "To answer your questions and follow up on your care.",
               "To keep the service secure and prevent misuse.",
             ],
@@ -71,14 +72,14 @@ export const legalData = {
         ],
       },
       {
-        id: "prescriptions",
-        heading: "Prescriptions and health information",
+        id: "payments",
+        heading: "Payments",
         blocks: [
           {
-            p: "Prescriptions you upload are stored privately on our own server — never on a public web address — and can be opened only by signed-in clinic staff. Every time a prescription is viewed or downloaded, it is recorded in an access log.",
+            p: "Online payments are processed by bKash and Nagad under their own terms and privacy policies. We receive only the result of the payment (amount, reference and transaction ID), which is visible to signed-in clinic staff.",
           },
           {
-            p: "Prescription medicines are dispensed only after a pharmacist has checked the prescription and spoken with you.",
+            p: "If you choose to pay later, you pay in cash on delivery or at the chamber, and staff record the payment against your order.",
           },
         ],
       },
@@ -90,6 +91,7 @@ export const legalData = {
           {
             list: [
               "Delivery staff receive your name, phone number and address to deliver an order.",
+              "bKash or Nagad, when you choose to pay with them — they receive the order amount and reference.",
               "Our email and hosting providers process data on our behalf to run this website.",
               "Authorities, when the law requires it.",
             ],
@@ -116,7 +118,7 @@ export const legalData = {
             p: "Access to the admin area is limited to named staff accounts with strong passwords. Connections to this website are encrypted.",
           },
           {
-            p: "We keep appointment, order and prescription records for as long as they are needed for your care and for medical and legal record-keeping. Security logs are deleted automatically after about 13 months.",
+            p: "We keep appointment, order and payment records for as long as they are needed for your care and for medical, accounting and legal record-keeping. Security logs are deleted automatically after about 13 months.",
           },
         ],
       },
@@ -155,7 +157,7 @@ export const legalData = {
     highlight: "of Use",
     description:
       "The rules for using this website, booking appointments and ordering medicines. Please read them before you use our online services.",
-    updated: "2026-10-07",
+    updated: "2026-10-12",
     sections: [
       {
         id: "about-these-terms",
@@ -200,10 +202,11 @@ export const legalData = {
         blocks: [
           {
             list: [
-              "Prescription medicines are supplied only against a valid prescription from a registered doctor, after our pharmacist has checked it.",
-              "An order request is not final until we call you to confirm the medicine, price and delivery.",
-              "Prices shown on the website may change; the price confirmed on the phone applies.",
-              "We may decline or cancel an order if the prescription is unclear, invalid or unsafe.",
+              "Our pharmacist calls you to confirm every order before it is dispatched. Please take medicines only as advised by your doctor.",
+              "You can pay online with bKash or Nagad when you order, or choose Pay later and pay in cash on delivery or at the chamber.",
+              "The amount you pay online is the price shown when you placed the order. Any delivery charge is agreed with you on the call.",
+              "We may decline or cancel an order if a medicine is unavailable or unsafe for you. If you already paid online, we refund the full amount to the same account.",
+              "Each medicine page shows the expiry date of the batch we hold; we do not sell expired medicines.",
               "Cold-chain medicines must be refrigerated as soon as they arrive.",
               "For safety, medicines cannot be returned once delivered unless they are damaged, incorrect or expired — tell us within 24 hours of delivery.",
             ],
@@ -217,7 +220,6 @@ export const legalData = {
           {
             list: [
               "Give accurate details for the patient, including contact number and address.",
-              "Upload only genuine prescriptions issued to the patient.",
               "Do not misuse the website, try to access the admin area, or send harmful files.",
             ],
           },

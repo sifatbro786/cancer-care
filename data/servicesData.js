@@ -94,22 +94,22 @@ export const servicesData = [
     slug: "oncology-medicine-support",
     icon: "pill",
     title: "Oncology Medicine Support",
-    short: "Genuine oncology & supportive medicines, verified against your prescription and delivered.",
+    short: "Genuine oncology & supportive medicines — order online, pay with bKash, Nagad or cash, delivered.",
     image: media.pharmacy,
     highlights: [
-      "Prescription verified by our pharmacist",
+      "Every order checked by our pharmacist",
       "Cold-chain handling for sensitive drugs",
       "Home delivery inside Dhaka",
       "Supportive & nutrition products",
     ],
     details: {
       intro:
-        "Finding the right oncology medicine, at the right strength, from a trusted source should not be another worry. Upload your prescription and we handle the rest.",
+        "Finding the right oncology medicine, at the right strength, from a trusted source should not be another worry. Order from our shop and we handle the rest.",
       precautions: [
-        "Prescription-only medicines are dispatched after verification",
+        "Our pharmacist calls to confirm every order before dispatch",
         "Check the batch & expiry on delivery",
       ],
-      facilities: ["Prescription upload", "Pharmacist call-back", "Doorstep delivery"],
+      facilities: ["bKash & Nagad payment", "Pharmacist call-back", "Doorstep delivery"],
     },
   },
 ];
@@ -119,8 +119,8 @@ export const careJourney = [
   {
     step: "01",
     icon: "clipboard",
-    title: "Submit appointment or prescription",
-    text: "Book a chamber or online slot, or upload a prescription — it takes about two minutes.",
+    title: "Book an appointment or order medicines",
+    text: "Book a chamber or online slot, or order from our medicine shop — it takes about two minutes.",
   },
   {
     step: "02",

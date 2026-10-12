@@ -37,7 +37,7 @@ export const testimonialsData = [
   {
     id: "t-04",
     quote:
-      "Getting the right injection used to take days of searching. Here I uploaded the prescription and it was delivered cold-packed the next morning.",
+      "Getting the right injection used to take days of searching. Here I ordered online and it was delivered cold-packed the next morning.",
     name: "N. Sultana",
     relation: "Caregiver",
     location: "Dhaka Cantonment",

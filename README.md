@@ -19,7 +19,7 @@ npm run dev
   `npm run seed -- --overwrite` resets content to `data/*.js`; `-- --fresh` wipes content collections first (needs `--yes` in production).
   Users, appointments, orders and messages are never touched by the seed.
 - `next build` with `MONGODB_URI` set needs the database reachable (pages are pre-rendered from it).
-- Prescriptions are written to **private** storage (`PRIVATE_STORAGE_DIR`, default `./storage`, git-ignored) — never under `public/`. Back it up together with the DB.
+- Medicine orders: no prescription upload. Customers pay with **bKash**, **Nagad** (online, switched on by env keys) or **Pay later** (cash on delivery / at the chamber). See *Online payments* below.
 - If the DB is down at submit time, the form degrades to email-only (502 only if email fails too).
 
 ### Admin (B2)
@@ -35,16 +35,15 @@ Every Server Action / admin Route Handler must call `authorize(PERMISSION)` / `w
 - **Admin → Media**: upload photos (JPG/PNG/WebP/AVIF ≤10 MB → re-encoded to WebP, ≤2400 px, metadata stripped) and assign them to **site image slots** (the keys of `data/media.js`).
 - A slot with no upload keeps showing its **Unsplash default** — nothing changes on the site until an admin replaces it. "Use stock photo" switches back.
 - Files live in `MEDIA_DIR` (default `./storage/media`), served by `app/media/[...path]/route.js` with a 1-year immutable cache. Not `public/`: `next start` only serves files that existed there at build time.
-- Prescriptions: `GET /api/admin/prescriptions/:orderId` (`?download=1` to save) — signed-in staff only, checksum-verified, `no-store`.
 - **Nginx (VPS)** can serve media directly instead of Node:
   ```nginx
   location /media/ { alias /var/lib/cancer-care/media/; expires 1y; add_header Cache-Control "public, immutable"; }
   ```
-- Back up `storage/` (or `MEDIA_DIR` + `PRIVATE_STORAGE_DIR`) together with MongoDB.
+- Back up `storage/` (or `MEDIA_DIR`) together with MongoDB.
 
 ### Inbox (B4)
 `/admin/appointments`, `/admin/orders`, `/admin/messages` — tabs, search (reference / name / mobile), notes, history.
-Allowed status changes live in `lib/inbox/workflow.js` (server-enforced). A prescription order can't be processed until the prescription is verified; rejecting it cancels the order. Clinic emails include an "Open in admin" link.
+Allowed status changes live in `lib/inbox/workflow.js` (server-enforced). Payment is tracked separately on each order and never blocks a status change (pay-later orders are paid on delivery). Clinic emails include an "Open in admin" link.
 
 ## Architecture
 
@@ -64,7 +63,7 @@ lib/                    utils (cn, formatBDT, readingTime…), seo builders, ico
   db/connect.js         Mongoose connection singleton (+ strictQuery, sanitizeFilter)
   db/models/            One file per model; import from "@/lib/db/models"
   cache/                Cache tags + revalidateContent() for admin writes
-  server/storage.js     Private file storage (prescriptions)
+  payments/             bKash + Nagad adapters, env config (services/payments.js = order ↔ gateway)
 services/content.js     Read side (server-only). Pages call ONLY these async functions.
   sources/mock.js       data/*.js source   ─┐ identical return shapes
   sources/db.js         MongoDB source     ─┘
@@ -73,7 +72,7 @@ services/auth.js        Login / password checks (lockout, rate limits)
 lib/auth/               config (cookie, TTL) · jwt (jose) · rbac (roles → permissions) · session (DB-verified) · password (bcrypt)
 proxy.js                /admin guard (optimistic), /api/admin 401, real 404 for unknown shop/blog slugs
 lib/media/slots.js      Site image slots: Unsplash defaults + admin overrides (applySlots)
-lib/inbox/workflow.js   Allowed status transitions (appointments, orders, prescriptions, messages)
+lib/inbox/workflow.js   Allowed status transitions (appointments, orders, messages)
 services/admin/inbox.js Inbox DAL — lists, details, conditional status updates, notes
 lib/server/media.js     Upload pipeline (magic bytes → sharp → WebP) + MEDIA_DIR storage
 app/(admin)/            /admin/login + (panel)/ (layout = requireUser) · _actions/ = Server Actions
@@ -108,7 +107,7 @@ scripts/create-admin.mjs npm run create-admin
 - **Authorization:** every Server Action and admin Route Handler checks its own permission (`authorize` / `withAdmin`); the proxy and layouts are UX only. Roles/permissions: `lib/auth/rbac.js`.
 - **Injection:** Mongoose `sanitizeFilter` + `strictQuery` globally; all input is zod-parsed; our own operators use `trusted()`; regex input is escaped. CSV exports neutralise formula cells (`=`, `+`, `-`, `@`).
 - **CSRF:** Server Actions are POST + Origin-checked by Next; admin uploads require a same-origin Origin/Sec-Fetch-Site (`isSameOriginStrict`); CSV export refuses cross-site requests; session cookie is `SameSite=Lax`, `__Host-` prefixed in production. Admin pages can't be framed (`frame-ancestors 'none'`).
-- **Uploads:** magic-byte checks, re-encoding (images), size caps, UUID names, private prescription storage with SHA-256 check.
+- **Uploads:** magic-byte checks, re-encoding (images), size caps, UUID names, JSON-only order API (no patient files are uploaded).
 - **Errors:** `instrumentation.js` writes one JSON line per server error to stderr (digest, route, message, short stack — no headers/bodies). The digest shown on the error page matches the log line.
 - **Indexes:** `npm run seed` runs `createIndexes()` for every model — run it after each deploy that touches models.
 - **Smoke test:** `npm run smoke` (or `BASE_URL=https://yourdomain npm run smoke`) — 31 black-box checks: pages, 404s, admin guards, forged cookie, cross-origin + operator-injection rejection, media traversal, security headers. Read-only; safe on production.
@@ -132,14 +131,13 @@ Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-visi
    | `MONGODB_URI` | leave unset on Vercel for the static demo; set on the VPS |
    | `AUTH_SECRET` | required for `/admin` (≥32 random chars) |
 4. **Deploy**, then **Settings → Domains** → add the domain and set `NEXT_PUBLIC_SITE_URL` to it → **Redeploy** (the URL is baked in at build time).
-5. Smoke test: submit the contact form, book an appointment, upload a test prescription → check the `MAIL_TO` inbox.
+5. Smoke test: submit the contact form, book an appointment, place a test order → check the `MAIL_TO` inbox.
 6. Submit `https://yourdomain/sitemap.xml` in Google Search Console.
 
-> Vercel limits request bodies to 4.5 MB — prescriptions are capped at 4 MB for that reason.
 > The rate limiter is in-memory per instance; for a strict global limit add Upstash Redis.
 
 ### VPS (later)
-`npm ci && npm run seed && npm run build && pm2 start npm --name cancer-care -- start` behind Nginx + Certbot, then `BASE_URL=https://yourdomain npm run smoke`. Same env vars in `.env.production`, plus `MONGODB_URI`, `AUTH_SECRET` and an absolute `PRIVATE_STORAGE_DIR`. Then `npm run create-admin` once.
+`npm ci && npm run seed && npm run build && pm2 start npm --name cancer-care -- start` behind Nginx + Certbot, then `BASE_URL=https://yourdomain npm run smoke`. Same env vars in `.env.production`, plus `MONGODB_URI`, `AUTH_SECRET` and the payment keys (below). Then `npm run create-admin` once.
 
 ## Admin guide (for clinic staff)
 
@@ -147,9 +145,9 @@ Sign in at **/admin/login**. What each section is for:
 
 | Section | Use it to |
 |---|---|
-| **Overview** | See what needs attention today: new appointment requests, prescriptions to verify, unread messages, anything whose email failed. |
+| **Overview** | See what needs attention today: new appointment requests, new medicine orders, unread messages, anything whose email failed. |
 | **Appointments** | Call the patient, then move the request **New → Confirmed → Completed** (or Cancelled). Add notes for colleagues. *Download CSV* exports the current tab. |
-| **Orders** | Open the prescription, **Verify** or **Reject** it (a reason is required; rejecting cancels the order), then **Processing → Dispatched → Delivered**. *Download CSV* for accounts. |
+| **Orders** | Call the customer, then **Processing → Dispatched → Delivered**. The *Payment* panel shows bKash / Nagad payments (marked paid automatically, with the transaction ID); for cash or a manual transfer use **Record a payment → Mark as paid**. *Download CSV* for accounts. |
 | **Messages** | Contact-form messages; opening one marks it read. Archive when handled. |
 | **Doctor profile / Services / Medicines / Blog / Testimonials / FAQ** | Edit website content. **Save** publishes immediately. ↑ ↓ change the order on the site; *Hide* removes an item from the site without deleting it. |
 | **Medicines → Categories**, **Blog → Categories** | Shop / blog filters. A category in use can't be deleted. |
@@ -159,7 +157,7 @@ Sign in at **/admin/login**. What each section is for:
 | **Site settings** | Phone, WhatsApp, email, address, map, opening hours, social links, footer text, review score. |
 | **Search & sharing** | Google title/description and the share image for each page; *Search defaults* for the whole site. Empty = built-in text. |
 | **Users** *(super admin)* | Add staff, change roles, disable, reset passwords (a temporary password is shown once — share it privately). |
-| **Audit log** *(super admin)* | Who did what and when — sign-ins, edits, status changes, prescription views, exports. |
+| **Audit log** *(super admin)* | Who did what and when — sign-ins, edits, status changes, recorded payments, exports. |
 | **Account** | Change your own password (signs out your other devices). |
 
 If someone else saves the same item while you're editing, you'll see *"Someone else saved this"* — reload, then make your change again.
@@ -174,3 +172,13 @@ All marked `// TODO(client)`:
 
 ## Phases
 See **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** — the single source of truth for what is done and what is next.
+
+## Online payments (bKash · Nagad · Pay later)
+
+- **Switching on:** fill the `BKASH_*` / `NAGAD_*` keys in `.env` (see `.env.example`), keep `MONGODB_URI` set, set `NEXT_PUBLIC_SITE_URL` to the public `https://` address, then `npm run build` and restart. A gateway with empty keys is simply not offered; "Pay later" is always there.
+- **Sandbox → live:** change only `BKASH_BASE_URL` / `NAGAD_BASE_URL` and the keys.
+- **Give the gateways these callback URLs:** `{SITE}/api/payment/bkash/callback` and `{SITE}/api/payment/nagad/callback`. Nagad also whitelists the **server's public IP**.
+- **Flow:** order saved + clinic emailed → customer sent to bKash/Nagad → callback → server executes/verifies with the gateway (the query string is never trusted), checks the amount, marks the order paid (idempotent) → clinic gets a "Payment received" email → customer lands on `/payment?ref=…` (status only, no personal data; retry buttons if unpaid).
+- **Amount mismatch** → payment status *Check payment* (never auto-accepted). Refunds are done in the merchant panel; cancelling a paid order shows a reminder.
+- Nagad needs Node with OpenSSL ≥ 3.2 for RSA PKCS#1 decryption (Node 24 ✓).
+

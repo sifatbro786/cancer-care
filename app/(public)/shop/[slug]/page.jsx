@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, FileText, Info, Snowflake, Truck } from "lucide-react";
+import { ArrowLeft, CalendarClock, Info, Snowflake, Truck } from "lucide-react";
 import { shopData } from "@/data/shopData";
 import { siteConfig } from "@/data/siteConfig";
 import { breadcrumbJsonLd, buildMetadata, productJsonLd } from "@/lib/seo";
-import { discountPercent, formatBDT } from "@/lib/utils";
+import { discountPercent, formatBDT, formatDate } from "@/lib/utils";
+import { canOrder, isExpired } from "@/lib/shop";
+import { enabledPaymentMethods } from "@/lib/payments/config";
 import { getAllProductSlugs, getProductBySlug, getProductCategories, getProducts } from "@/services/content";
 import SmartImage from "@/components/ui/SmartImage";
 import JsonLd from "@/components/seo/JsonLd";
@@ -49,11 +51,27 @@ export default async function ProductPage({ params }) {
     { label: p.name, href: `/shop/${p.slug}` },
   ];
 
+  const expired = isExpired(p);
   const facts = [
     [D.generic, p.generic],
     [D.manufacturer, p.manufacturer],
     [D.pack, p.pack],
-  ];
+    [
+      D.expiry,
+      p.expiryDate ? (
+        <span className="inline-flex flex-wrap items-center gap-2">
+          <time dateTime={p.expiryDate} className="tabular-nums">
+            {formatDate(p.expiryDate)}
+          </time>
+          {expired ? (
+            <span className="rounded-full bg-alert-50 px-2.5 py-0.5 text-xs font-semibold text-alert-700 ring-1 ring-alert-600/20">
+              {D.expiredTag}
+            </span>
+          ) : null}
+        </span>
+      ) : null,
+    ],
+  ].filter(([, v]) => v);
 
   return (
     <>
@@ -102,10 +120,10 @@ export default async function ProductPage({ params }) {
           </dl>
 
           <ul className="mt-6 space-y-3 text-[0.95rem]">
-            {p.requiresPrescription ? (
-              <li className="flex gap-3 rounded-xl bg-white p-4 ring-1 ring-line">
-                <FileText aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand-700" />
-                {D.rxNote}
+            {expired ? (
+              <li className="flex gap-3 rounded-xl bg-alert-50 p-4 text-alert-700 ring-1 ring-alert-600/20">
+                <CalendarClock aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+                {D.expiredNote}
               </li>
             ) : null}
             {p.coldChain ? (
@@ -121,7 +139,7 @@ export default async function ProductPage({ params }) {
           </ul>
 
           <div className="mt-8">
-            <ProductActions product={p} />
+            <ProductActions product={p} orderable={canOrder(p)} expired={expired} paymentMethods={enabledPaymentMethods()} />
           </div>
 
           <p className="mt-8 flex gap-2 text-sm text-ink-muted">

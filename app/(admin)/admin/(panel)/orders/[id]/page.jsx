@@ -1,21 +1,20 @@
 import { notFound } from "next/navigation";
-import { Download, ExternalLink, FileText, Snowflake } from "lucide-react";
+import { Snowflake } from "lucide-react";
 import { inboxData } from "@/data/admin/inboxData";
 import { orderStatusAction } from "@/app/(admin)/_actions/inbox";
 import { can, PERMISSIONS } from "@/lib/auth/rbac";
 import { requireUser } from "@/lib/auth/session";
-import { ORDER_FLOW, orderBlockedReason } from "@/lib/inbox/workflow";
+import { ORDER_FLOW } from "@/lib/inbox/workflow";
 import { formatBDT, formatDateTime } from "@/lib/utils";
 import { getOrder } from "@/services/admin/inbox";
 import { BackLink, ContactButtons, Facts, History, NotEmailedFlag, StatusPill } from "@/components/admin/inbox/bits";
 import StatusActions from "@/components/admin/inbox/StatusActions";
-import PrescriptionReview from "@/components/admin/inbox/PrescriptionReview";
+import PaymentReceived from "@/components/admin/inbox/PaymentReceived";
 import NotesPanel from "@/components/admin/inbox/NotesPanel";
 import { Eyebrow } from "@/components/ui/SectionHeading";
 
 const O = inboxData.orders;
-const R = O.rx;
-const RX_TONE = { pending: "alert", verified: "sage", rejected: "muted", not_required: "muted" };
+const P = O.payment;
 const TONE = { processing: "primary", dispatched: "primary", delivered: "primary", cancelled: "danger" };
 
 export async function generateMetadata({ params }) {
@@ -30,16 +29,16 @@ export default async function OrderPage({ params }) {
   const canWrite = can(user.role, PERMISSIONS.inboxWrite);
   const D = O.detail;
 
-  const order = { prescription: { required: o.rxRequired, status: o.rxStatus } };
-  const gated = ORDER_FLOW[o.status].some((to) => orderBlockedReason(order, to));
+  const pay = o.payment;
+  const paid = pay.status === "paid";
   const options = ORDER_FLOW[o.status].map((to) => ({
     to,
     label: O.actions[to],
     tone: TONE[to],
     note: to === "cancelled" ? "optional" : undefined,
-    disabled: Boolean(orderBlockedReason(order, to)),
+    hint: to === "cancelled" && paid ? P.refundHint : undefined,
   }));
-  const fileUrl = `/api/admin/prescriptions/${o.id}`;
+  const R = P.rows;
 
   return (
     <article>
@@ -57,42 +56,29 @@ export default async function OrderPage({ params }) {
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-8">
-          {o.rxStatus !== "not_required" || o.rxRequired ? (
-            <section aria-labelledby="rx-heading" className="flex flex-col gap-4 rounded-[1.25rem] bg-white p-5 ring-1 ring-line">
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 id="rx-heading" className="text-lg font-semibold">
-                  {R.heading}
-                </h2>
-                <StatusPill status={o.rxStatus} label={R.status[o.rxStatus]} tone={RX_TONE[o.rxStatus]} />
-              </div>
-              {o.file ? (
-                <div className="flex flex-wrap gap-2">
-                  <a
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener"
-                    className="inline-flex items-center gap-2 rounded-xl bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-800 ring-1 ring-brand-200 hover:bg-brand-100"
-                  >
-                    <FileText aria-hidden="true" className="size-4" />
-                    {R.view}
-                    <ExternalLink aria-hidden="true" className="size-3.5" />
-                  </a>
-                  <a
-                    href={`${fileUrl}?download=1`}
-                    className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-ink-soft ring-1 ring-line hover:ring-brand-300"
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    {R.download}
-                  </a>
-                </div>
-              ) : (
-                <p className="text-sm text-ink-muted">{R.none}</p>
-              )}
-              {o.reviewedAt ? <p className="text-sm text-ink-muted">{R.reviewedBy(o.reviewer, formatDateTime(o.reviewedAt))}</p> : null}
-              {o.rejectReason ? <p className="text-sm text-alert-700">{o.rejectReason}</p> : null}
-              {canWrite && o.rxStatus === "pending" ? <PrescriptionReview id={o.id} required={o.rxRequired} /> : null}
-            </section>
-          ) : null}
+          <section aria-labelledby="pay-heading" className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 id="pay-heading" className="text-lg font-semibold">
+                {P.heading}
+              </h2>
+              <StatusPill status={pay.status} label={P.status[pay.status]} tone={P.tone[pay.status]} />
+            </div>
+            {pay.status === "review" ? <p className="text-sm text-alert-700">{P.reviewHint}</p> : null}
+            <Facts
+              rows={[
+                [R.method, P.method[pay.method]],
+                [R.amount, formatBDT(pay.amount)],
+                [R.trxId, pay.trxId],
+                [R.payer, pay.payer],
+                [R.paidAt, pay.paidAt ? formatDateTime(pay.paidAt) : null],
+                [R.receivedBy, pay.receivedBy],
+                [R.gatewayRef, pay.gatewayRef],
+                [R.attempts, pay.attempts ? String(pay.attempts) : null],
+                [R.lastError, paid ? null : pay.lastError],
+              ]}
+            />
+            {canWrite && !paid && o.status !== "cancelled" ? <PaymentReceived id={o.id} method={pay.method} /> : null}
+          </section>
 
           <section aria-labelledby="items-heading">
             <h2 id="items-heading" className="mb-3 text-lg font-semibold">
@@ -134,7 +120,7 @@ export default async function OrderPage({ params }) {
                 <p className="border-t border-line px-5 py-3 text-sm text-ink-muted">{D.subtotalHint}</p>
               </div>
             ) : (
-              <p className="rounded-[1.25rem] bg-white px-5 py-4 text-ink-soft ring-1 ring-line">{D.generalRx}</p>
+              <p className="rounded-[1.25rem] bg-white px-5 py-4 text-ink-soft ring-1 ring-line">{D.noItems}</p>
             )}
           </section>
 
@@ -146,7 +132,6 @@ export default async function OrderPage({ params }) {
               id={o.id}
               from={o.status}
               options={options}
-              disabledReason={gated ? R.gate : null}
             />
           ) : null}
         </div>

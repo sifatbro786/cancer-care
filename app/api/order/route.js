@@ -1,25 +1,26 @@
 import { z } from "zod";
 import { formMessages as M } from "@/data/formMessages";
 import { shopData } from "@/data/shopData";
-import { orderSchema, PRESCRIPTION_MAX_BYTES, requiresPrescription } from "@/lib/validation/order";
+import { orderSchema } from "@/lib/validation/order";
+import { canOrder, isExpired } from "@/lib/shop";
 import { rateLimit } from "@/lib/server/rateLimit";
 import { getClientIp, isSameOrigin, makeReference, reply, requestMeta } from "@/lib/server/request";
-import { readPrescription } from "@/lib/server/files";
-import { removePrivateFile, savePrivateFile } from "@/lib/server/storage";
 import { sendMail } from "@/lib/server/mailer";
 import { orderEmail } from "@/lib/server/emailTemplates";
+import { isMethodEnabled, isOnlineMethod } from "@/lib/payments/config";
 import { getProductBySlug } from "@/services/content";
 import { markNotified, saveOrder } from "@/services/submissions";
-import { isDbConfigured } from "@/lib/db/connect";
+import { startPayment } from "@/services/payments";
 
-// File + text fields; anything bigger is rejected before parsing
-const MAX_BODY = PRESCRIPTION_MAX_BYTES + 64 * 1024;
+const MAX_BODY = 16 * 1024;
 
 /**
- * POST /api/order — multipart/form-data with optional `prescription` file.
- * Pipeline: origin → rate limit → size cap → honeypot → zod → product lookup (DB price)
- *           → magic-byte file check → private storage → save order → email (+ attachment).
- * If the order save fails after the file was written, the file is removed (no orphans).
+ * POST /api/order — JSON. No prescription upload (owner decision 2026-10-12).
+ * Pipeline: origin → rate limit → size cap → honeypot → zod → product lookup (DB price,
+ *           stock, expiry) → payment method enabled? → save order → email
+ *           → online method: create the gateway session and return its URL.
+ * The order is saved and the clinic emailed BEFORE the customer leaves for bKash / Nagad,
+ * so an abandoned payment still leaves a callable order ("awaiting payment").
  */
 export async function POST(request) {
   if (!isSameOrigin(request)) return reply.forbidden();
@@ -27,81 +28,57 @@ export async function POST(request) {
   const limit = rateLimit(`order:${getClientIp(request)}`, { limit: 6, windowMs: 15 * 60 * 1000 });
   if (!limit.ok) return reply.limited(limit.retryAfter);
 
-  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY) {
-    return reply.tooLarge(shopData.modal.fields.prescription.hint);
-  }
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY) return reply.tooLarge(M.server.invalid);
 
-  let form;
+  let body;
   try {
-    form = await request.formData();
+    body = await request.json();
   } catch {
     return reply.invalid({});
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return reply.invalid({});
+  if (body.company) return reply.ok({ reference: makeReference("RX") });
 
-  const fields = Object.fromEntries(
-    ["product", "quantity", "name", "phone", "address", "note", "company"].map((k) => [k, form.get(k) ?? undefined])
-  );
-  if (fields.company) return reply.ok({ reference: makeReference("RX") });
-
-  const parsed = orderSchema.safeParse(fields);
+  const parsed = orderSchema.safeParse(body);
   if (!parsed.success) return reply.invalid(z.flattenError(parsed.error).fieldErrors);
-
   const o = parsed.data;
 
-  // Product must exist, be active and in stock — price & Rx flag come from the catalogue, never the client
-  const product = o.product ? await getProductBySlug(o.product) : null;
-  if (o.product && (!product || !product.inStock)) return reply.invalid({ product: [M.product] });
-
-  const rx = requiresPrescription(product);
-  const upload = form.get("prescription");
-  const hasFile = upload && typeof upload !== "string" && upload.size > 0;
-
-  let file = null;
-  if (rx || hasFile) {
-    file = await readPrescription(upload);
-    if (!file.ok) {
-      if (file.tooLarge) return reply.tooLarge(file.error);
-      return reply.invalid({ prescription: [file.error] });
-    }
+  // Product must exist, be active, in stock and not expired — price comes from the catalogue, never the client
+  const product = await getProductBySlug(o.product);
+  if (!product || !canOrder(product)) {
+    return reply.invalid({ product: [product && isExpired(product) ? M.expired : M.product] });
   }
+  if (!isMethodEnabled(o.paymentMethod)) return reply.invalid({ paymentMethod: [M.paymentUnavailable] });
 
-  // Persist: file first (private storage), then the order that points at it
-  let stored = null;
   let record = null;
-  if (isDbConfigured()) {
-    try {
-      if (file) stored = await savePrivateFile({ buffer: file.buffer, ext: file.ext, folder: "prescriptions" });
-      record = await saveOrder(o, {
-        product,
-        rx,
-        file: stored ? { ...stored, mime: file.mime } : null,
-        meta: requestMeta(request),
-      });
-    } catch (err) {
-      // DB down → no orphan file; degrade to email-only (prescription goes as attachment)
-      console.error("[order] save failed, falling back to email-only:", err?.message);
-      if (stored) await removePrivateFile(stored.path);
-    }
+  try {
+    record = await saveOrder(o, { product, meta: requestMeta(request) });
+  } catch (err) {
+    console.error("[order] save failed:", err?.message);
+    // Online payment needs the stored order; pay-later can still go out by email
+    if (isOnlineMethod(o.paymentMethod)) return reply.failed();
   }
 
   const reference = record?.reference ?? makeReference("RX");
-  const attachment = file
-    ? { filename: `prescription-${reference}.${file.ext}`, content: file.buffer, contentType: file.mime }
-    : null;
+  const amount = product.price * o.quantity;
+  const method = shopData.payment.methods[o.paymentMethod];
 
-  const sent = await sendMail({
-    ...orderEmail({
+  const sent = await sendMail(
+    orderEmail({
       ...o,
       reference,
-      rx,
-      productLabel: product?.name ?? shopData.modal.generalProduct,
-      fileName: attachment?.filename,
+      amount,
+      productLabel: product.name,
+      paymentLabel: isOnlineMethod(o.paymentMethod) ? `${method.label} — awaiting online payment` : method.label,
       adminPath: record ? `/admin/orders/${record.id}` : null,
-    }),
-    attachments: attachment ? [attachment] : undefined,
-  });
+    })
+  );
   await markNotified(record, sent);
   if (!sent && !record) return reply.failed();
 
-  return reply.ok({ reference });
+  if (!isOnlineMethod(o.paymentMethod)) return reply.ok({ reference });
+
+  const pay = await startPayment({ reference, method: o.paymentMethod, ip: getClientIp(request) });
+  // Gateway down → the order still stands; the customer can retry from /payment or pay later
+  return reply.ok(pay.ok ? { reference, redirectUrl: pay.redirectUrl } : { reference, paymentFailed: true });
 }

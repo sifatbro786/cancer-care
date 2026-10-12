@@ -19,6 +19,7 @@ import { CONTENT_ICON_KEYS } from "@/lib/icons";
 import { telHref } from "@/lib/site";
 import { formatBDT } from "@/lib/utils";
 import { cmsData } from "@/data/admin/cmsData";
+import { isExpired } from "@/lib/shop";
 
 /**
  * Admin content (B5) — data access for every editable collection.
@@ -91,7 +92,7 @@ const REGISTRY = {
       badges: [
         visible(d.active),
         ...(d.inStock ? [] : [{ label: B.outOfStock, tone: "alert" }]),
-        ...(d.requiresPrescription ? [{ label: B.rx, tone: "brand" }] : []),
+        ...(isExpired(d) ? [{ label: B.expired, tone: "alert" }] : []),
       ],
       toggle: d.active,
       view: d.active ? `/shop/${d.slug}` : null,

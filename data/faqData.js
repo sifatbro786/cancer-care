@@ -13,8 +13,8 @@ export const faqData = [
     a: "Yes. Family members can join the same video call — we encourage it, especially for treatment decisions.",
   },
   {
-    q: "How do I order prescription-only medicines?",
-    a: "Upload a clear photo of a valid prescription in the shop. Our pharmacist verifies it and calls you before dispatch.",
+    q: "How do I order medicines and pay?",
+    a: "Choose the medicine in our shop and fill in your details. Pay right away with bKash or Nagad, or choose Pay later — we call you first, then you pay in cash on delivery or at the chamber.",
   },
   {
     q: "What should I bring to my first visit?",

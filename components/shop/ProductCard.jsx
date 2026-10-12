@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { FileText, Snowflake } from "lucide-react";
+import { Snowflake } from "lucide-react";
 import { shopData } from "@/data/shopData";
-import { cn, discountPercent, formatBDT } from "@/lib/utils";
+import { discountPercent, formatBDT } from "@/lib/utils";
 import SmartImage from "@/components/ui/SmartImage";
 import Button from "@/components/ui/Button";
 
-/** Product tile. `onOrder(product)` opens the order / prescription modal. */
+/** Product tile. `onOrder(product)` opens the order modal. `p.orderable` / `p.expired` are set on the server. */
 export default function ProductCard({ product: p, onOrder }) {
   const C = shopData.card;
   const off = discountPercent(p.price, p.mrp);
@@ -21,12 +21,6 @@ export default function ProductCard({ product: p, onOrder }) {
           className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
         />
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          {p.requiresPrescription ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-ink ring-1 ring-line">
-              <FileText aria-hidden="true" className="size-3.5 text-brand-700" />
-              {C.rx}
-            </span>
-          ) : null}
           {p.coldChain ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-ink ring-1 ring-line">
               <Snowflake aria-hidden="true" className="size-3.5 text-brand-700" />
@@ -58,17 +52,14 @@ export default function ProductCard({ product: p, onOrder }) {
         </p>
 
         <div className="relative z-10 mt-auto pt-5">
-          {p.inStock ? (
-            <Button
-              size="sm"
-              variant={p.requiresPrescription ? "primary" : "secondary"}
-              className="w-full"
-              onClick={() => onOrder(p)}
-            >
-              {p.requiresPrescription ? C.orderRx : C.order}
+          {p.orderable ? (
+            <Button size="sm" className="w-full" onClick={() => onOrder(p)}>
+              {C.order}
             </Button>
           ) : (
-            <p className={cn("rounded-xl bg-paper-deep py-2.5 text-center text-sm font-medium text-ink-muted")}>{C.outOfStock}</p>
+            <p className="rounded-xl bg-paper-deep py-2.5 text-center text-sm font-medium text-ink-muted">
+              {p.expired ? C.expired : C.outOfStock}
+            </p>
           )}
         </div>
       </div>

@@ -24,7 +24,7 @@ export const homeData = {
       "Protocol-based chemotherapy",
       "Oncology-trained nurses",
       "Online video consultation",
-      "Verified prescription medicines",
+      "Genuine oncology medicines",
       "Families welcome in every decision",
       "Marks Medical College affiliation",
     ],
@@ -67,20 +67,18 @@ export const homeData = {
     title: "Genuine oncology medicines, delivered to your door",
     highlight: "delivered to your door",
     description:
-      "Order prescribed cancer medicines and supportive care from the same team that treats you — checked by our pharmacist before anything leaves the chamber.",
+      "Order cancer medicines and supportive care from the same team that treats you — pay with bKash, Nagad or cash, and our pharmacist checks every order before it leaves the chamber.",
     steps: [
-      { icon: "clipboard", title: "Upload your prescription", text: "A clear photo or PDF is enough." },
-      { icon: "shield", title: "Pharmacist verifies & calls", text: "We confirm medicine, price and dose." },
-      { icon: "truck", title: "Delivered in 24–48 hours", text: "Inside Dhaka · cash on delivery." },
+      { icon: "clipboard", title: "Choose your medicine", text: "Search by brand or generic name." },
+      { icon: "shield", title: "Pay your way", text: "bKash, Nagad — or cash when it arrives." },
+      { icon: "truck", title: "Delivered in 24–48 hours", text: "Inside Dhaka · our pharmacist calls first." },
     ],
-    primaryCta: { label: "Upload prescription", href: "/shop?upload=1" },
-    secondaryCta: { label: "Browse all medicines", href: "/shop" },
+    primaryCta: { label: "Order medicines", href: "/shop" },
+    secondaryCta: { label: "Ask our pharmacist", href: "/contact" },
     productsHeading: "Frequently ordered",
     // Products shown on the homepage, in this order. Missing / out-of-stock slugs are skipped
     // and the list is topped up from the catalogue, so this never renders empty.
     featuredSlugs: ["capecitabine-500mg", "ondansetron-8mg", "filgrastim-300mcg-injection", "oral-nutrition-supplement-vanilla"],
-    rxLabel: "Rx",
-    rxTitle: "Prescription required",
   },
 
   doctor: {
@@ -155,7 +153,7 @@ export const homeData = {
     description:
       "Book a chamber visit or an online consultation. Bring your reports — we'll take it from there, together.",
     primary: { label: "Book Appointment", href: "/appointment" },
-    secondary: { label: "Upload Prescription", href: "/shop?upload=1" },
+    secondary: { label: "Order Medicines", href: "/shop" },
     image: media.bedsideCare,
   },
 };

@@ -6,7 +6,7 @@ export const authData = {
     eyebrow: "Staff area",
     title: "Welcome back",
     highlight: "back",
-    intro: "Sign in to manage appointments, prescriptions and site content.",
+    intro: "Sign in to manage appointments, medicine orders and site content.",
     email: "Email",
     password: "Password",
     showPassword: "Show password",
@@ -93,7 +93,7 @@ export const authData = {
     intro: "What needs attention today.",
     cards: [
       { key: "appointments", label: "New appointment requests", hint: "Waiting for a confirmation call", href: "/admin/appointments?tab=new" },
-      { key: "prescriptions", label: "Prescriptions to verify", hint: "Orders waiting for pharmacist review", href: "/admin/orders?tab=rx" },
+      { key: "orders", label: "New medicine orders", hint: "Waiting for a confirmation call", href: "/admin/orders?tab=new" },
       { key: "messages", label: "Unread messages", hint: "From the contact form", href: "/admin/messages?tab=unread" },
       { key: "unsent", label: "Not emailed", hint: "Saved, but the notification email failed — check these by hand" },
     ],

@@ -102,7 +102,7 @@ export const cmsData = {
     scheduled: "Scheduled",
     featured: "Featured",
     outOfStock: "Out of stock",
-    rx: "Rx",
+    expired: "Expired",
     noindex: "Hidden from search",
   },
 
@@ -367,7 +367,7 @@ export const cmsData = {
       search: { placeholder: "Name, generic or SKU" },
       related: { href: "/admin/content/product-categories", label: "Categories" },
       viewPath: (r) => `/shop/${r.slug}`,
-      defaults: { active: true, inStock: true, requiresPrescription: true, coldChain: false },
+      defaults: { active: true, inStock: true, coldChain: false, expiryDate: "" },
       sections: [
         {
           title: "Basics",
@@ -386,8 +386,8 @@ export const cmsData = {
           fields: [
             { name: "price", type: "number", label: "Selling price (৳)", required: true, min: 0, step: "1" },
             { name: "mrp", type: "number", label: "MRP (৳)", required: true, min: 0, step: "1" },
+            { name: "expiryDate", type: "date", label: "Expiry date", hint: "Shown on the medicine page. After this day the medicine can't be ordered." },
             { name: "inStock", type: "checkbox", label: "In stock" },
-            { name: "requiresPrescription", type: "checkbox", label: "Prescription required" },
             { name: "coldChain", type: "checkbox", label: "Needs cold chain" },
             { name: "active", type: "checkbox", label: "Show in the shop" },
           ],

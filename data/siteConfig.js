@@ -97,7 +97,7 @@ export const siteConfig = {
         links: [
           { label: "Book Appointment", href: "/appointment" },
           { label: "Patient Care Guide", href: "/patient-guide" },
-          { label: "Upload Prescription", href: "/shop?upload=1" },
+          { label: "Order Medicines", href: "/shop" },
           { label: "Health Articles", href: "/blog" },
         ],
       },

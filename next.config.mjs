@@ -26,7 +26,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Private admin APIs (exports, prescriptions, uploads) — never cached, never indexed
+        // Private admin APIs (exports, uploads) — never cached, never indexed
         source: "/api/admin/:path*",
         headers: [
           { key: "Cache-Control", value: "private, no-store" },

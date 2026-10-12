@@ -61,32 +61,24 @@ export async function saveAppointment(a, { service, meta }) {
   });
 }
 
-export async function saveOrder(o, { product, rx, file, meta }) {
+export async function saveOrder(o, { product, meta }) {
   if (!isDbConfigured()) return null;
-  const items = product
-    ? [
-        {
-          product: product.id,
-          slug: product.slug,
-          name: product.name,
-          unitPrice: product.price, // server-side price — the client never sends money
-          quantity: o.quantity,
-          requiresPrescription: product.requiresPrescription !== false,
-          coldChain: Boolean(product.coldChain),
-        },
-      ]
-    : [];
+  const item = {
+    product: product.id,
+    slug: product.slug,
+    name: product.name,
+    unitPrice: product.price, // server-side price — the client never sends money
+    quantity: o.quantity,
+    coldChain: Boolean(product.coldChain),
+  };
+  const subtotal = item.unitPrice * item.quantity;
 
   return createWithReference(Order, "RX", {
-    items,
-    subtotal: items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0),
+    items: [item],
+    subtotal,
     customer: { name: o.name, phone: o.phone, address: o.address },
     note: o.note || undefined,
-    prescription: {
-      required: rx,
-      status: file ? "pending" : "not_required",
-      file: file ?? undefined,
-    },
+    payment: { method: o.paymentMethod, status: "unpaid", amount: subtotal },
     meta,
   });
 }

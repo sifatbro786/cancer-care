@@ -43,7 +43,7 @@ export const seoData = {
   shop: {
     title: "Oncology Medicine Shop",
     description:
-      "Order genuine oncology, supportive-care and general medicines. Upload your prescription for pharmacist verification and home delivery in Dhaka.",
+      "Order genuine oncology, supportive-care and general medicines. Pay with bKash, Nagad or cash on delivery — home delivery in Dhaka.",
     path: "/shop",
   },
   blog: {
@@ -64,7 +64,7 @@ export const seoData = {
   privacy: {
     title: "Privacy Policy",
     description:
-      "How Medicare Haven collects, uses and protects information from appointments, medicine orders, prescriptions and messages.",
+      "How Medicare Haven collects, uses and protects information from appointments, medicine orders, payments and messages.",
     path: "/privacy-policy",
   },
   terms: {

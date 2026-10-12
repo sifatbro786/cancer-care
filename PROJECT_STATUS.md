@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-07 · Current phase: **B1–B7 code done → owner verification (lint, build, smoke, E2E on the dev PC) → launch** (see 7-step plan below)_
+_Last updated: 2026-10-12 · Current phase: **B1–B7 code done → owner verification (lint, build, smoke, E2E on the dev PC) → launch** (see 7-step plan below)_
 
 ---
 
@@ -198,6 +198,13 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.
 - ODM: **Mongoose**
 - **Appointments: no per-slot limit** — any number of requests per slot; the clinic calls each patient to confirm the final time (B4 builds the inbox around this: status New → Confirmed by phone).
 - Roles: **only `super_admin` and `admin`** — no pharmacist role. Admins handle orders/prescriptions; super_admin additionally manages admin users and audit log.
+
+### Shop change (2026-10-12, owner/client request)
+- **No prescription upload anywhere.** Removed: upload modal, `?upload=1`, Rx badges/notes, `requiresPrescription` (Product + order items), Order.prescription, admin Rx tab/gate/review, `/api/admin/prescriptions`, `lib/server/files.js` + `storage.js`. Copy updated (home, services, FAQ, SEO, footer, legal, testimonials). Admin overview/badge now = **new orders**.
+- **Payments:** order form picks **bKash / Nagad / Pay later**. `lib/payments/{config,bkash,nagad,errors}.js` + `services/payments.js`; routes `POST /api/order` (now JSON), `POST /api/payment/start` (retry), `GET /api/payment/{bkash,nagad}/callback`; page `/payment?ref=` (status only, noindex). Gateway on = its env keys filled + DB set (then build + restart). Callback → server-side execute/verify → amount check → conditional "paid" update (idempotent) → clinic email. Mismatch → `review`. Every attempt kept in `payment.sessions`. Admin order page: Payment panel + **Record a payment** (cash/manual), audited `inbox.payment_received`; CSV has payment columns.
+- **Expiry date:** `Product.expiryDate` ("YYYY-MM-DD"), editable in Admin → Medicines, shown on `/shop/[slug]`; expired = can't be ordered (server-enforced), "Expired" badge in admin list, JSON-LD OutOfStock.
+- Verified: eslint 0 · esbuild bundle of 223 files (0 missing imports) · bKash + Nagad adapters against a local mock gateway (token cache, execute→query fallback, RSA encrypt/sign/decrypt/verify). **Not run here:** `next build`, browser E2E with MongoDB, real sandbox keys.
+- Owner TODO: `npm run seed -- --overwrite` (or edit in admin) so DB copy/FAQ/services lose the prescription text and products get expiry dates; `npm run seed` for the new Order indexes; test with bKash/Nagad **sandbox** keys before live. Delivery charge is not added to the online amount yet (agreed on the call).
 
 ## Fixed decisions (do not change without the client/owner)
 - **Stack:** Next.js 16 App Router, **JavaScript only (no TypeScript)**, Tailwind v4, Framer Motion (`LazyMotion` + `m.*` only), Lucide (v1 — no brand icons; see `components/icons/BrandIcons.jsx`), Nodemailer.

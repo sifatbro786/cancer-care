@@ -14,11 +14,15 @@ export const formMessages = {
   quantity: "Quantity must be between 1 and 20.",
   address: "Please enter a delivery address.",
   service: "Please choose a service from the list.",
-  product: "This medicine is not available right now. Please choose another or upload your prescription.",
-  file: {
-    required: "Please attach the prescription.",
-    type: "Only JPG, PNG, WEBP or PDF files are accepted.",
-    size: "The file is larger than 4 MB.",
+  product: "This medicine is not available right now. Please choose another one or call us.",
+  expired: "This medicine has passed its expiry date and can't be ordered. Please call us for a fresh stock.",
+  paymentMethod: "Please choose how you'd like to pay.",
+  paymentUnavailable: "This payment option isn't available right now. Please choose another one.",
+  paymentCodes: {
+    disabled: "This payment option isn't available right now. Please choose another one.",
+    notFound: "We couldn't find this order. Please call us.",
+    closed: "This order can't be paid online any more — it is already paid or closed.",
+    tooMany: "Too many payment attempts for this order. Please call us and we'll help you pay.",
   },
   server: {
     invalid: "Please check the highlighted fields.",

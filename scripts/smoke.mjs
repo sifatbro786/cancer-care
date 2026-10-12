@@ -71,7 +71,7 @@ await check("admin login page is noindex + no-store + not frameable", async () =
   expect((r.headers.get("x-frame-options") || "").toUpperCase() === "DENY", "x-frame-options not DENY");
 });
 
-for (const path of ["/api/admin/export/orders", "/api/admin/export/appointments", "/api/admin/prescriptions/000000000000000000000000"]) {
+for (const path of ["/api/admin/export/orders", "/api/admin/export/appointments"]) {
   await check(`GET ${path} without a session → 401`, async () => {
     const r = await get(path);
     expect(r.status === 401, `status ${r.status}`);

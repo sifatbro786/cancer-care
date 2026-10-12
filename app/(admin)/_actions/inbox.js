@@ -9,10 +9,11 @@ import { PERMISSIONS } from "@/lib/auth/rbac";
 import { authorize } from "@/lib/auth/session";
 import { audit } from "@/lib/server/audit";
 import { APPOINTMENT_FLOW, MESSAGE_FLOW, ORDER_FLOW } from "@/lib/inbox/workflow";
+import { PAYMENT_METHODS } from "@/lib/validation/order";
 import {
   addNote,
   markMessageRead,
-  reviewPrescription,
+  recordPayment,
   setMessageStatus,
   transitionAppointment,
   transitionOrder,
@@ -81,23 +82,29 @@ export async function orderStatusAction(_prev, fd) {
   });
 }
 
-export async function prescriptionReviewAction(_prev, fd) {
+/** Staff mark an order as paid (cash / at the chamber / manual transfer). */
+export async function paymentReceivedAction(_prev, fd) {
   const auth = await guard();
   if (!auth.ok) return { ok: false, message: E.invalid };
   const p = z
-    .object({ id: objectId, decision: z.enum(["verified", "rejected"]), reason: noteText.optional() })
-    .refine((v) => v.decision !== "rejected" || (v.reason && v.reason.length >= 3), { message: E.reasonRequired })
-    .safeParse({ id: field(fd, "id"), decision: field(fd, "decision"), reason: field(fd, "reason") });
+    .object({
+      id: objectId,
+      method: z.enum(PAYMENT_METHODS),
+      trxId: z
+        .string()
+        .trim()
+        .max(80, E.trxLong)
+        .regex(/^[\w\s./#-]*$/, E.trxChars)
+        .optional(),
+    })
+    .safeParse({ id: field(fd, "id"), method: field(fd, "method"), trxId: field(fd, "trxId") });
   if (!p.success) return { ok: false, message: p.error.issues[0]?.message ?? E.invalid };
-  return run(() =>
-    reviewPrescription({
-      id: p.data.id,
-      decision: p.data.decision,
-      reason: p.data.decision === "rejected" ? p.data.reason : undefined,
-      userId: auth.user.id,
-    }),
-    { action: "inbox.prescription_review", user: auth.user, target: { type: "order", id: p.data.id }, meta: { decision: p.data.decision } }
-  );
+  return run(() => recordPayment({ ...p.data, trxId: p.data.trxId || undefined, userId: auth.user.id }), {
+    action: "inbox.payment_received",
+    user: auth.user,
+    target: { type: "order", id: p.data.id },
+    meta: { method: p.data.method },
+  });
 }
 
 export async function messageStatusAction(_prev, fd) {

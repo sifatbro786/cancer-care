@@ -4,13 +4,14 @@
  */
 export const seoData = {
   default: {
-    title: "Medicare Haven — Cancer Care, Day Care Chemotherapy & Oncology, Dhaka",
-    titleTemplate: "%s | Medicare Haven",
+    title: "Adelin Cancer Care & Medicine — Day Care Chemotherapy & Oncology, Dhaka",
+    titleTemplate: "%s | Adelin Cancer Care",
     description:
       "Specialised cancer care in Dhaka: day care chemotherapy, in-person oncology chamber in Kafrul (Dhaka Cantonment), online telemedicine and genuine oncology medicine delivery.",
     ogHeadline: "Day care chemotherapy, chamber & online oncology consultation",
     keywords: [
-      "Medicare Haven",
+      "Adelin Cancer Care",
+      "Adelin Pharmacy",
       "cancer care Dhaka",
       "oncologist Dhaka Cantonment",
       "day care chemotherapy Bangladesh",
@@ -64,13 +65,13 @@ export const seoData = {
   privacy: {
     title: "Privacy Policy",
     description:
-      "How Medicare Haven collects, uses and protects information from appointments, medicine orders, payments and messages.",
+      "How Adelin Cancer Care & Medicine collects, uses and protects information from appointments, medicine orders, payments and messages.",
     path: "/privacy-policy",
   },
   terms: {
     title: "Terms of Use",
     description:
-      "Terms for using the Medicare Haven website, booking appointments, online consultations and ordering medicines.",
+      "Terms for using the Adelin Cancer Care & Medicine website, booking appointments, online consultations and ordering medicines.",
     path: "/terms",
   },
 };

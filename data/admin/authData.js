@@ -36,7 +36,7 @@ export const authData = {
   },
 
   shell: {
-    brand: "Medicare Haven",
+    brand: "Adelin Cancer Care",
     brandSub: "Admin",
     nav: [
       { label: "Overview", href: "/admin", icon: "layout" },

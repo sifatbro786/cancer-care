@@ -10,18 +10,18 @@
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-heading), var(--font-body), ui-sans-serif, sans-serif;
 
-  /* Brand — soft clinical teal. 600 is the primary (6.1:1 on white). */
-  --color-brand-50: #eef7f5;
-  --color-brand-100: #d7efea;
-  --color-brand-200: #afddd4;
-  --color-brand-300: #7fc4b8;
-  --color-brand-400: #4ba699;
-  --color-brand-500: #18897d;
-  --color-brand-600: #0e6e66;
-  --color-brand-700: #0c5a54;
-  --color-brand-800: #0b4743;
-  --color-brand-900: #0b3f3b;
-  --color-brand-950: #062724;
+  /* Brand — Adelin magenta, sampled from the logo. 600 = logo colour (6.7:1 on white). */
+  --color-brand-50: #fef3f7;
+  --color-brand-100: #fce6ee;
+  --color-brand-200: #f7cbdc;
+  --color-brand-300: #f5a0c3;
+  --color-brand-400: #e473a6;
+  --color-brand-500: #ca4b88;
+  --color-brand-600: #a8246a;
+  --color-brand-700: #901859;
+  --color-brand-800: #730c45;
+  --color-brand-900: #5d0a37;
+  --color-brand-950: #36011e;
 
   /* Alert — reserved for form errors & urgent states. 4.9:1 on white. */
   --color-alert-50: #fbefef;
@@ -34,22 +34,22 @@
   --color-sage-500: #5e8b72;
   --color-sage-700: #3f6450;
 
-  /* Neutrals — warm slate on warm paper */
-  --color-ink: #1c2b2c;
-  --color-ink-soft: #4a5a5c;
-  --color-ink-muted: #5c6b6d;
+  /* Neutrals — warm plum-grey on warm paper (tinted toward the brand hue) */
+  --color-ink: #2f2429;
+  --color-ink-soft: #5f5357;
+  --color-ink-muted: #706468;
   /* Quiet half of two-tone headlines — 4.3:1 on paper/white (AA for large text) */
-  --color-ink-quiet: #6c7a7b;
+  --color-ink-quiet: #7f7377;
   --color-paper: #faf8f4;
   --color-paper-deep: #f2eee6;
-  --color-mist: #e9f1f0;
+  --color-mist: #f4edef;
   --color-line: #e6e1d7;
 
   --radius-card: 1.25rem;
   --radius-pill: 999px;
 
-  --shadow-soft: 0 1px 2px rgb(28 43 44 / 0.04), 0 8px 24px -12px rgb(28 43 44 / 0.12);
-  --shadow-lift: 0 2px 4px rgb(28 43 44 / 0.05), 0 18px 40px -18px rgb(14 110 102 / 0.28);
+  --shadow-soft: 0 1px 2px rgb(47 36 41 / 0.04), 0 8px 24px -12px rgb(47 36 41 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(47 36 41 / 0.05), 0 18px 40px -18px rgb(168 36 106 / 0.28);
 
   --container-site: 80rem;
 
@@ -105,8 +105,8 @@
 /* Subtle paper grain — pure CSS (no image request), adds a human, printed feel */
 @utility bg-grain {
   background-image:
-    radial-gradient(rgb(28 43 44 / 0.035) 1px, transparent 1px),
-    radial-gradient(rgb(28 43 44 / 0.025) 1px, transparent 1px);
+    radial-gradient(rgb(47 36 41 / 0.035) 1px, transparent 1px),
+    radial-gradient(rgb(47 36 41 / 0.025) 1px, transparent 1px);
   background-size: 22px 22px, 13px 13px;
   background-position: 0 0, 7px 9px;
 }

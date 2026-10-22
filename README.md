@@ -1,4 +1,4 @@
-# Cancer Care & Medical Services — Web Platform
+# Adelin Cancer Care & Medicine — Web Platform
 
 Next.js 16 (App Router, **JavaScript only**) · Tailwind CSS v4 · Framer Motion · Lucide · Nodemailer
 Node.js **24**. The backend is built **inside this Next.js app** (Route Handlers + Server Actions) — no separate Express server.
@@ -91,9 +91,9 @@ scripts/create-admin.mjs npm run create-admin
 ### Design tokens (see `app/globals.css`)
 | Token | Use | Contrast |
 |---|---|---|
-| `brand-600` #0E6E66 | primary actions, highlights | 6.1:1 on white |
+| `brand-600` #A8246A | primary actions, highlights (Adelin logo magenta) | 6.7:1 on white |
 | `alert-600` #A53B3B | warnings & form errors only | 4.9:1 on white |
-| `ink` / `ink-soft` | text | 13.8 / 6.8:1 on paper |
+| `ink` / `ink-soft` | text | 14.1 / 6.9:1 on paper |
 | `paper` #FAF8F4 | page background | — |
 
 ### Content CMS (B5) · SEO, users, audit (B6)
@@ -126,7 +126,7 @@ Fonts: Onest (headings), Atkinson Hyperlegible Next (body — built for low-visi
    | `NEXT_PUBLIC_SITE_URL` | `https://www.yourdomain.com` (no trailing slash — used by sitemap, OG, JSON-LD) |
    | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` | `smtp.gmail.com` / `465` / `true` |
    | `SMTP_USER` / `SMTP_PASS` | Gmail address / **App Password** (not the normal password) |
-   | `MAIL_FROM` | `Cancer Care <your-account@gmail.com>` |
+   | `MAIL_FROM` | `Adelin Cancer Care <your-account@gmail.com>` |
    | `MAIL_TO` | inbox that receives appointments, messages and orders |
    | `MONGODB_URI` | leave unset on Vercel for the static demo; set on the VPS |
    | `AUTH_SECRET` | required for `/admin` (≥32 random chars) |

@@ -1,4 +1,4 @@
-# Cancer Care & Medical Services — Project Status
+# Adelin Cancer Care & Medicine — Project Status
 
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
@@ -217,7 +217,7 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.
 - Images: always `SmartImage` (auto-fallback). Unsplash IDs must be verified to exist before use.
 
 ## Design rules (owner feedback — important)
-- ❌ **No orange / coral** anywhere. Palette = teal (`brand`), sage, warm slate (`ink`), paper. `alert` red only for warnings/errors.
+- ❌ **No orange / coral** anywhere. Palette = Adelin magenta (`brand`, from the logo; 600 = `#a8246a`), sage, warm plum-grey (`ink`), paper. (Was teal until 2026-10-22 — switched to match the Adelin logo.) `alert` red only for warnings/errors.
 - ❌ No tape stickers, no hand-drawn underlines, no handwritten (Caveat) font, no chart-grid backgrounds, no ECG/pulse-line decorations, no ✦ sparkles, no decorative blobs.
 - ❌ **No serif italic accent words** (owner, 2026-10-07: looked AI-generated). Newsreader font removed.
 - ✅ Editorial, human-made feel: **two-tone headlines** via `AccentText` — the `highlight` (best as the trailing clause) is the same font/weight in `ink-quiet` (`text-white/60` on dark, `invert`), hairline rules, typographic tables (`<dl>`), real photography, calm spacing.

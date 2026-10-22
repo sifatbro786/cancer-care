@@ -5,8 +5,10 @@
  */
 
 export const siteConfig = {
-  name: "Medicare Haven",
-  shortName: "Medicare Haven",
+  name: "Adelin Cancer Care & Medicine",
+  shortName: "Adelin Cancer Care",
+  // Brand assets (public/brand). Replace the PNGs with the client's original high-res/vector files — same names, no code change.
+  logo: { src: "/brand/adelin-logo.png", width: 692, height: 259, mark: "/brand/adelin-mark.png" },
   // Descriptor under the wordmark (logo) — keep short, it renders uppercase + tracked
   logoTagline: "Cancer & Medical Care",
   tagline: "Specialised cancer care, close to home",

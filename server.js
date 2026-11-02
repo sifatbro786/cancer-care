@@ -21,6 +21,12 @@ const next = require("next");
 const port = process.env.PORT || 3000;
 const dir = __dirname;
 
+// Server Action redirect() is streamed by Next re-fetching the target from itself. A custom server's
+// default origin is localhost:3000 (and https when behind a TLS proxy) → ECONNREFUSED. Point it at this process.
+if (/^\d+$/.test(String(port)) && !process.env.__NEXT_PRIVATE_ORIGIN) {
+  process.env.__NEXT_PRIVATE_ORIGIN = `http://127.0.0.1:${port}`;
+}
+
 const log = (level, message, extra) =>
   console[level === "error" ? "error" : "log"](
     JSON.stringify({ level, at: new Date().toISOString(), message, ...extra })

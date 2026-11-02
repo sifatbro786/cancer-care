@@ -3,7 +3,7 @@
 > **For any new chat / new developer: read this file first.**
 > Update the checklist and the "Last session" log at the end of every phase.
 
-_Last updated: 2026-10-12 · Current phase: **B1–B7 code done → owner verification (lint, build, smoke, E2E on the dev PC) → launch** (see 7-step plan below)_
+_Last updated: 2026-11-02 · Current phase: **LIVE on Hostinger VPS** → https://adelincancercareandmedicine.com (see “Production deploy” below)_
 
 ---
 
@@ -206,6 +206,17 @@ New packages: `mongoose` 9 ✅ · `jose` 6 ✅ · `bcryptjs` 3 ✅ · `sharp` 0.
 - Verified: eslint 0 · esbuild bundle of 223 files (0 missing imports) · bKash + Nagad adapters against a local mock gateway (token cache, execute→query fallback, RSA encrypt/sign/decrypt/verify). **Not run here:** `next build`, browser E2E with MongoDB, real sandbox keys.
 - Owner TODO: `npm run seed -- --overwrite` (or edit in admin) so DB copy/FAQ/services lose the prescription text and products get expiry dates; `npm run seed` for the new Order indexes; test with bKash/Nagad **sandbox** keys before live. Delivery charge is not added to the online amount yet (agreed on the call).
 
+## Production deploy (2026-11-02) — LIVE
+- **URL:** https://adelincancercareandmedicine.com (www + http → 301 to https apex). DNS at Hostinger: A `@` → 147.93.116.5, CNAME `www` → apex.
+- **Server:** Hostinger VPS 147.93.116.5 (Ubuntu 24.04, Node 24.13), app at `/var/www/cancer-care`, PM2 `cancer-care` on **127.0.0.1:3006** (`--max-memory-restart 700M`, saved). Shares the box with str-frontend :3005, str-backend :5025, shortly-backend :5012 — don't reuse those ports.
+- **Nginx:** `/etc/nginx/sites-available/adelincancercareandmedicine.com` — 3 blocks (https apex → proxy, https www → 301, http → 301). `client_max_body_size 12M`. No `ipv6only=on` (would clash with `default`'s `[::]:443 http2 default_server`). Security headers come from the app, not Nginx.
+- **TLS:** Let's Encrypt via certbot (nginx plugin), auto-renew, dry-run OK.
+- **DB:** local MongoDB 8.0 on the VPS (auth on, bound to 127.0.0.1), db `cancer-care`, app user `cancercare_app`. Restored from the Atlas Compass export (`npm run restore`) then `npm run seed` (0 inserted, indexes built). **Atlas cluster stays** for local dev (owner decision).
+- **Server `.env`:** chmod 600; prod `NEXT_PUBLIC_SITE_URL`, local `MONGODB_URI`, new `AUTH_SECRET`; no `MEDIA_DIR` (→ `./storage/media`, gitignored — never `git clean -fdx`), no PORT/NODE_ENV.
+- **Fix shipped:** `server.js` sets `__NEXT_PRIVATE_ORIGIN=http://127.0.0.1:<PORT>` — custom-server default origin was `https://localhost:3000`, so Server Action `redirect()` logged `failed to get redirect response … ECONNREFUSED`.
+- **Update:** `cd /var/www/cancer-care && git pull && npm ci && npm run build && pm2 restart cancer-care` (server.js-only change: pull + restart). New DB fields/indexes → `npm run seed` before build.
+- **Open:** SMTP + bKash/Nagad keys from the client (then `.env` → build → restart); `npm audit` (19 advisories) — review separately, no `--force`.
+
 ## Fixed decisions (do not change without the client/owner)
 - **Stack:** Next.js 16 App Router, **JavaScript only (no TypeScript)**, Tailwind v4, Framer Motion (`LazyMotion` + `m.*` only), Lucide (v1 — no brand icons; see `components/icons/BrandIcons.jsx`), Nodemailer.
 - **Node.js 24** (`engines`, `.nvmrc`).
@@ -256,3 +267,4 @@ Doctor's real name, degrees, BMDC number, training places, official email, Faceb
 - **B6:** admin-editable SEO (per page, defaults, per article/medicine, noindex, share images), user management with one-time temporary passwords and last-super-admin guard, append-only audit log + viewer.
 - **B7:** authz review, strict CSRF for admin writes/downloads, admin framing CSP, race-safe last-super-admin, structured error logging, CSV exports with formula guard, `npm run smoke`, README admin guide. Next: owner verification → launch.
 - **Design pass (2026-10-07):** serif-italic accents → two-tone headlines site-wide (Newsreader dropped); hero fits the first screen (smaller H1, viewport-clamped height, proof card xl+ only); homepage Medicine Shop section (`MedicineShopSection`, featured slugs in `homeData.shop`, in-stock only, 4 products) + nav "Medicine Shop" after Services (lg shows "Shop" + phone icon only, CTA at xl); CareJourney rebuilt as a stepper with straight badge-to-badge connector; `/privacy-policy` + `/terms` (`data/legalData.js`, `components/legal/LegalDocument.jsx`, SEO keys `privacy`/`terms`, sitemap); footer bar: © + "Developed by STR Solutions LTD" (strsltd.com) + legal links — medical disclaimer moved into Terms → Medical information (still editable in Admin → Site settings). Run `npm run seed` once so the two new pages appear in Admin → Search & sharing. TODO(client): legal review of both pages.
+- **Deploy (2026-11-02):** live on the Hostinger VPS (PM2 :3006, Nginx + Let's Encrypt, local MongoDB restored from Atlas export); `server.js` origin fix for Server Action redirects; www/http → https apex 301.

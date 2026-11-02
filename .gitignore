@@ -43,3 +43,6 @@ next-env.d.ts
 
 # private uploads (prescriptions) — never commit patient files
 /storage/
+
+# local DB export (Compass JSON) — contains patient data & password hashes, never commit
+/_export/
